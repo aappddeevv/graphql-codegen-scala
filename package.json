@@ -1,5 +1,5 @@
 {
-"private": true,
+  "private": true,
   "name": "graphql-codegen-scala",
   "version": "0.1.0",
   "description": "scala plugins for @graphqcl-codegen",
@@ -22,5 +22,7 @@
   "devDependencies": {
     "lerna": "^3.20.2",
     "lerna-update-wizard": "^0.17.7"
+  },
+  "dependencies": {
   }
 }
