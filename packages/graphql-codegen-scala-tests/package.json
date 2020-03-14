@@ -1,0 +1,24 @@
+{
+  "name": "@aappddeevv/graphql-codegen-scala-tests",
+  "version": "1.0.0",
+  "description": "Test folder. Not meant for publishing.",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "watch:all": "DEBUG=1 VERBOSE=1 nodemon -w ../graphql-codegen-scala-operations/dist -w ../graphql-codegen-scala-schema/dist -w ../graphql-codegen-scala-common -x /usr/bin/sh run.sh",
+    "watch:inputs": "DEBUG=1 npx graphql-codegen -w -c test.yml",
+    "test": "DEBUG=1 npx graphql-codegen -c test.yml"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aappddeevv/graphql-codegen-scala-operations": "^1.0.0",
+    "@aappddeevv/graphql-codegen-scala-schema": "^1.0.0",
+    "@graphql-codegen/cli": "^1.13.0",
+    "nodemon": "^2.0.2"
+  },
+  "devDependencies": {
+    "@graphql-codegen/add": "^1.13.0"
+  }
+}

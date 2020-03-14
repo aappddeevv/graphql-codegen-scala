@@ -1,0 +1,15 @@
+overwrite: true
+hooks:
+  afterOneFileWrite:
+    - scalafmt
+generates:
+  basic.scala:
+    schema: schemas/basic.graphql
+    documents: basic/ops.graphql
+    plugins:
+      - "node_modules/@aappddeevv/graphql-codegen-scala-operations"
+      - add: "// DO NOT EDIT - automatically generated, edits will be lost"
+      - add: "package test"
+    config:
+      gqlImport: "apollo_boost._#gql"
+      #isolateInputObjects: true

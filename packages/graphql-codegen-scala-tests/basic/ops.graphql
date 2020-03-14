@@ -1,0 +1,41 @@
+query helloworld {
+  helloworld
+}
+
+query allpeople {
+  people {
+    id
+    firstname
+    lastname
+  }
+}
+
+query AllPeopleLastnames {
+  people {
+    lastname
+  }
+}
+
+query somepeople($filter: String) {
+  plist: peopleList(filter: $filter) {
+    id
+    lastname
+    firstname
+  }
+}
+
+query somepeople2($filter: String!) {
+  peopleList(filter: $filter) {
+    id
+    TheLastName: lastname
+    TheFistName: firstname
+  }
+}
+
+mutation changeMessage($id: ID!, $input: MessageInput) {
+  updateMessage(id: $id, input: $input) {
+    id
+    content
+  }
+  notifyOthers
+}

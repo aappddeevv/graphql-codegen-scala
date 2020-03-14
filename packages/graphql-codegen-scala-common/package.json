@@ -1,0 +1,60 @@
+{
+  "name": "@aappddeevv/graphql-codegen-scala-common",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "dev:watch": "tsc -watch",
+    "dev": "npx tsc",
+    "build": "npx tsc"
+  },
+  "author": "aappddeevv",
+  "keyword": [
+    "scala.js",
+    "graphql",
+    "scala",
+    "scala.js",
+    "codegen"
+  ],
+  "homepage": "https://github.com/aappddeevv/graphql-codegen-scala#readme",
+  "description": "Common code for the scala plugins.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aappddeevv/graphql-codegen-scala.git"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/mit-license.php"
+    }
+  ],
+  "devDependencies": {
+    "@graphql-codegen/add": "^1.13.0",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@graphql-codegen/plugin-helpers": "1.12.2",
+    "@graphql-codegen/visitor-plugin-common": "^1.12.2",
+    "apollo": "^2.25.0",
+    "debug": "^4.1.1",
+    "graphql": "^14.6.0"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "graphql": "^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/aappddeevv/graphql-codegen-scala/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://api.bintray.com/npm/aappddeevv/npm"
+  },
+  "typings": "dist/index.d.ts",
+  "typescript": {
+    "definition": "dist/index.d.ts"
+  }
+}

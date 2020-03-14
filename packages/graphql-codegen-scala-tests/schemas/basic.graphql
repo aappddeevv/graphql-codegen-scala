@@ -1,0 +1,52 @@
+schema {
+  query: Query
+}
+
+type Query {
+  helloworld: String!
+  people: [People!]!
+  peopleList(filter: String): [People!]!
+  getMessage(id: ID!): Message
+}
+
+type Mutation {
+  createMessage(input: MessageInput): Message
+  updateMessage(id: ID!, input: MessageInput): Message
+  updateMessageNoInputType(
+    id: ID!
+    content: String
+    author: String = "unknown"
+  ): Message
+  notifyOthers: String
+}
+
+type Message {
+  id: ID!
+  content: String
+  author: String
+}
+
+input MessageInput {
+  content: String
+  author: String
+}
+
+type People {
+  id: ID!
+  firstname: String
+  lastname: String
+}
+
+type Company {
+  id: ID!
+  name: String!
+  address: String
+  numLocations: Int
+}
+
+enum Direction {
+  NORTH
+  EAST
+  SOUTH
+  WEST
+}

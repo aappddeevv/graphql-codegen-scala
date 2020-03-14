@@ -1,0 +1,26 @@
+{
+"private": true,
+  "name": "graphql-codegen-scala",
+  "version": "0.1.0",
+  "description": "scala plugins for @graphqcl-codegen",
+  "repository": {
+    "type": "git",
+    "url": "git+https://aappddeevv@github.com/aappddeevv/graphql-codegen-scala.git"
+  },
+  "keywords": [
+    "graphql",
+    "scala",
+    "scala.js",
+    "plugin"
+  ],
+  "author": "aappddeevv@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aappddeevv/graphql-codegen-scala/issues"
+  },
+  "homepage": "https://github.com/aappddeevv/graphql-codegen-scala#readme",
+  "devDependencies": {
+    "lerna": "^3.20.2",
+    "lerna-update-wizard": "^0.17.7"
+  }
+}
