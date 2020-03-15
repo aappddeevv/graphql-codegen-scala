@@ -5,16 +5,18 @@ import { Config } from "./config"
 import { log } from "./logger"
 import { PLVariableInfo, createPLVariable, GenOptions } from "./plvariable"
 import { GenerateTraitOptions, generateScalaJSTrait } from "./trait"
+import { TraitRenderingInputs } from "./types"
 
-export function findInputTypes(
-  config: Config,
-  options?: Partial<GenOptions>
-): Array<[string, Array<PLVariableInfo>, Partial<GenerateTraitOptions>]> {
+const logem = log.extend("input-types")
+
+/** Find and create rendering inputs for input types. */
+export function findInputTypes(config: Config, options?: Partial<GenOptions>): Array<TraitRenderingInputs> {
   const inputTypes = Object.entries(config.schema.getTypeMap()).filter(p => isInputObjectType(p[1]))
+  log(`Found ${inputTypes.length} input types to process.`)
   return inputTypes.map(p => {
     const name = p[0]
-    const inputObjectType = p[1] as GraphQLInputObjectType
-    const plvars = Object.entries(inputObjectType.getFields()).map(f => {
+    const t = p[1] as GraphQLInputObjectType
+    const plvars = Object.entries(t.getFields()).map(f => {
       const fname = f[0]
       const ftype = f[1]
       // The spec says these cannot be objects, only enums, scalars, etc.
@@ -25,16 +27,18 @@ export function findInputTypes(
         ...options,
       })
     })
+    const description = t.description ? t.description : `Input type ${name}`
     return [
       name,
       plvars,
       {
-        description: `Input type ${name}`,
+        description,
       },
     ]
   })
 }
 
+/** Find and render input objects. */
 export function genInputObjectTypes(
   config: Config,
   options?: {
@@ -42,6 +46,10 @@ export function genInputObjectTypes(
     trait?: Partial<GenerateTraitOptions>
   }
 ): Array<String> {
-  const x = findInputTypes(config, options?.plvar)
+  const x = findInputTypes(config, {
+    scalars: config.scalars,
+    enums: config.enumValues,
+    ...options?.plvar,
+  })
   return x.map(p => generateScalaJSTrait(p[0], p[1], { ...p[2], ...options?.trait }))
 }

@@ -19,12 +19,14 @@ import { parseEnumValues } from "./enum-values"
  */
 export interface RawConfig {
   /** For declaring documents in scala objects. If missing,
-   * parsed document members are not added but the raw strings may still be added.
+   * parsed document members are not added but the raw strings are still be added.
    */
   gqlImport?: string
-  /** Applies to typeNames and enumValues. Example, lower-case#lowerCase or upper-case#upperCase. Default is pascal-case#pascalCase. */
+  /** Applies to typeNames and enumValues. Example, lower-case#lowerCase or upper-case#upperCase.
+   * Default is pascal-case#pascalCase. Thsi is not used consistently yet.
+   */
   namingConvention?: NamingConvention
-  /** Name of the fragment object that declares all fragment strings. */
+  /** Name of the fragment object that declares all fragment strings. Default is `Fragment` */
   fragmentObjectName?: string
   /** Scalar mappings, either replacements or additions. */
   scalars?: ScalarsMap
@@ -34,10 +36,12 @@ export interface RawConfig {
   enumValues?: EnumValuesMap
   /** Externally loaded fragments. */
   externalFragments?: LoadedFragment[]
-  /** Isolate fragments into their own trait. Default is false. */
+  /** Isolate fragments into their own trait. Default is true. Not sure this works yet. */
   isolateFragments?: boolean
-  /** When outputting operations, output a comment with graphql names to wrangled mapping names. */
+  /** When outputting operations, output a comment with graphql names to wrangled mapping names. Default is true. */
   outputOperationNameWrangling?: boolean
+  /** Interface should be declared separately and inheritance used. Default is true.*/
+  separateInterfaces?: boolean
 }
 
 /** Final processed configuration taking into account defaults. */
@@ -53,6 +57,7 @@ export interface Config {
   fragments: LoadedFragment[]
   isolateFragments: boolean
   outputOperationNameWrangling: boolean
+  separateInterfaces: boolean
 }
 
 /** Given a list of LoadedFragment objects, return the raw FragmentDefinitionNode AST
@@ -80,6 +85,7 @@ export function makeConfig(schema: GraphQLSchema, raw: RawConfig): Config {
     fragments: raw.externalFragments || [],
     isolateFragments: raw.isolateFragments ?? true,
     outputOperationNameWrangling: raw.outputOperationNameWrangling ?? true,
+    separateInterfaces: raw.separateInterfaces ?? true,
   }
 }
 

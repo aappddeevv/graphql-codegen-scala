@@ -22,7 +22,8 @@ import {
   genEnums,
   genInputObjectTypes,
   debug_type,
-  log
+  log,
+  genInterfaceTypes
 } from "@aappddeevv/graphql-codegen-scala-common";
 
 export const plugin: PluginFunction<RawConfig> = (
@@ -53,14 +54,15 @@ export const plugin: PluginFunction<RawConfig> = (
       externalFragments: allFragments
     });
 
-    // Object.entries(schema.getTypeMap()).forEach(t => {
-    //   logme("type", t[0]);
-    //   debug_type(t[1]);
-    //   logme("schema type %O", t[1]);
-    // });
+    Object.entries(schema.getTypeMap()).forEach(t => {
+      logme("type", t[0]);
+      debug_type(t[1]);
+      logme("schema type %O", t[1]);
+    });
 
     const visitor = new ScalaJSOperationsVisitor(final_config);
     const visitorResult = visit(allAst, { leave: visitor as any });
+
     const inputObjectTypes = genInputObjectTypes(final_config, {
       trait: {
         native: true,
@@ -70,7 +72,11 @@ export const plugin: PluginFunction<RawConfig> = (
 
     return {
       prepend: [
-        ...genImports(["scala.scalajs.js", "js.|", final_config.gqlImport]),
+        ...genImports([
+          "scala.scalajs.js",
+          "js.|",
+          ...(final_config.gqlImport ? [final_config.gqlImport] : [])
+        ]),
         final_config.outputOperationNameWrangling ? visitor.nameWranglings : ""
       ],
       content: [

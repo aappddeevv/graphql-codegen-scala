@@ -12,4 +12,3 @@ generates:
       - add: "package test"
     config:
       gqlImport: "apollo_boost._#gql"
-      #isolateInputObjects: true

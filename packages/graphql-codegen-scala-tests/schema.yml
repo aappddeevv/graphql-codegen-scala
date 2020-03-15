@@ -11,4 +11,3 @@ generates:
       - add: "// DO NOT EDIT - automatically generated, edits will be lost"
       - add: "package test"
     config:
-      gqlImport: "apollo_boost._#gql"

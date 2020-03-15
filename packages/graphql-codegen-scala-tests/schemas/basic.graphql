@@ -5,8 +5,15 @@ schema {
 type Query {
   helloworld: String!
   people: [People!]!
-  peopleList(filter: String): [People!]!
+  peopleList(filter: String): [PersonAndAddress!]!
   getMessage(id: ID!): Message
+  changeDirection(direction: Direction): Path
+  getDie(numSides: Int): RandomDie
+}
+
+type Path {
+  direction: Direction
+  message: String
 }
 
 type Mutation {
@@ -26,12 +33,21 @@ type Message {
   author: String
 }
 
+"""
+An input type called MesasgeInput. Great comment!
+"""
 input MessageInput {
   content: String
   author: String
 }
 
-type People {
+interface PersonLike {
+  id: ID!
+  firstname: String
+  lastname: String
+}
+
+type People implements PersonLike {
   id: ID!
   firstname: String
   lastname: String
@@ -49,4 +65,38 @@ enum Direction {
   EAST
   SOUTH
   WEST
+}
+
+type RandomDie {
+  numSides: Int!
+  rollOnce: Int!
+  roll(numRolls: Int!): [Int]
+}
+
+"""
+Something like an address.
+"""
+interface AddressLike {
+  line1: String
+  line2: String
+  zip: String
+  city: String
+  state: String
+  country: String
+  numRooms: Int
+}
+
+type PersonAndAddress implements AddressLike & PersonLike {
+  id: ID!
+  firstname: String
+  lastname: String
+  line1: String
+  line2: String
+  zip: String
+  city: String
+  state: String
+  country: String
+  numRooms: Int
+
+  notInEither: String
 }

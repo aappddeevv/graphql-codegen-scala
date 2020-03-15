@@ -5,6 +5,7 @@ import { PLVariableInfo } from "./plvariable"
 
 /** Trait generation options. Large bag values :-) */
 export interface GenerateTraitOptions {
+  /** If trait should have `@js.native` added. */
   native: boolean
   nested: string
   includeCompanion: boolean
@@ -20,7 +21,7 @@ export interface GenerateTraitOptions {
    */
   dynamicValueConversion: (value: string) => string
   /** Trait extends/withs. */
-  extends: ReadonlyArray<string>
+  extends?: ReadonlyArray<string>
   /** If defined, use this fqn instead of the name in all places except trait and object declaration. */
   fqn?: string
   /** Whether generation is for scalajs. */
@@ -45,9 +46,9 @@ export const defaultOptions: GenerateTraitOptions = {
   scalajs: true,
   nested: "",
   dynamicValueConversion: (value: string) => `${value}.asInstanceOf[js.Any]`,
-  extends: ["scala.scalajs.js.Object"],
   makeComment: (s: string) => `// ${s}`,
   makeDescription: (s: string) => `/** ${s} */`,
+  extends: [],
 }
 
 /** Generate an object with some nested content. Very simple
@@ -93,11 +94,12 @@ export function generateScalaJSTrait(
   })
 
   const description = opts.makeDescription && opts.description ? [opts.makeDescription(opts.description)] : []
+  const supers = [...(opts.scalajs ? ["scala.scalajs.js.Object"] : []), ...(opts.extends ?? [])]
 
   const trait = [
     ...description,
     opts.native ? "@js.native" : "",
-    `trait ${name} ${createExtends(opts.extends).join(" ")} {`,
+    `trait ${name} ${createExtends(supers).join(" ")} {`,
     declarations.join("\n"),
     "}",
   ]

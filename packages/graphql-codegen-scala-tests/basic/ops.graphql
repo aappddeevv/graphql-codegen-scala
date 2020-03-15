@@ -39,3 +39,14 @@ mutation changeMessage($id: ID!, $input: MessageInput) {
   }
   notifyOthers
 }
+
+#mutation direction($d: Direction = NORTH) {
+#  changeDirection(direction = $d) { direction message }
+#}
+
+query die_test($numSides: Int) {
+  getDie(numSides: $numSides) {
+    numSides
+    roll(numRolls: 4)
+  }
+}

@@ -83,8 +83,6 @@ export function createPLVariable(name: string, type: GraphQLType, options?: Part
 
 /** Options for generating a programming language variable. */
 export type GenOptions = Partial<Pick<PLVariableInfo, "documentation" | "comment" | "defaultValue">> & {
-  //   mkListZero: (tname: string) => string
-  //   mkOptZero: (tname: string) => string
   /** Object types have a path prefix given by this value. If present, overrides `path`. */
   objectsHaveParentType?: string
   /** Final scalar map to use if scalar type. */
@@ -103,8 +101,6 @@ export type GenOptions = Partial<Pick<PLVariableInfo, "documentation" | "comment
 
 /** Default gen options. */
 export const defaultGenOptions: GenOptions = {
-  //   mkListZero: (tname: string) => undefined,
-  //   mkOptZero: (tname: string) => undefined,
   path: [],
   immutable: true,
   wrapperOptions: defaultWrapperOptions,

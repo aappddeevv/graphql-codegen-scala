@@ -18,7 +18,8 @@ import {
   makeConfig,
   genEnums,
   genObjectTypes,
-  genInputObjectTypes
+  genInputObjectTypes,
+  genInterfaceTypes
 } from "@aappddeevv/graphql-codegen-scala-common";
 
 export const plugin: PluginFunction<RawConfig> = (
@@ -49,6 +50,17 @@ export const plugin: PluginFunction<RawConfig> = (
     });
 
     const inputObjectTypes = genInputObjectTypes(final_config).join("\n");
+
+    const interfaceTypes = final_config.separateInterfaces
+      ? genInterfaceTypes(final_config, {
+          trait: {
+            native: false,
+            ignoreDefaultValuesInTrait: true,
+            includeCompanion: true
+          }
+        }).join("\n")
+      : "";
+
     const objectTypes = genObjectTypes(final_config, {
       trait: {
         ignoreDefaultValuesInTrait: true
@@ -58,10 +70,15 @@ export const plugin: PluginFunction<RawConfig> = (
     return {
       prepend: [
         "// This is a prototype code generator and the code below will be wrong...",
-        ...genImports(["scala.scalajs.js", "js.|", final_config.gqlImport])
+        ...genImports([
+          "scala.scalajs.js",
+          "js.|",
+          ...(final_config.gqlImport ? [final_config.gqlImport] : [])
+        ])
       ],
       content: [
         genEnums(schema),
+        interfaceTypes,
         inputObjectTypes,
         objectTypes
         //...visitorResult.definitions.filter(t => typeof t === "string")

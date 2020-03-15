@@ -2,7 +2,10 @@ import { Config } from "./config"
 import { isObjectType, GraphQLObjectType, isNonNullType } from "graphql"
 import { GenerateTraitOptions, generateScalaJSTrait } from "./trait"
 import { PLVariableInfo, createPLVariable, defaultGenOptions, GenOptions } from "./plvariable"
-import { undefWrapperOptions, nullWrapperOptions } from "./types"
+import { undefWrapperOptions, nullWrapperOptions, filterFieldsWithParents, interfaceNames } from "./types"
+import { log } from "./logger"
+
+const logme = log.extend("object-types")
 
 /** Find all object types in the schema. */
 export function findObjectTypes(config: Config) {
@@ -26,31 +29,33 @@ export function genObjectTypes(
   }
 ): Array<string> {
   const objectTypes = findObjectTypes(config)
-
+  logme(`Found ${objectTypes.length} object types.`)
   const x: Array<[string, Array<PLVariableInfo>, Partial<GenerateTraitOptions>]> = objectTypes.map(p => {
     const name = p[0]
     const objectType = p[1] as GraphQLObjectType
-
-    const interfaces = objectType.getInterfaces()
-    // reduce fields by those fields coming from interfaces and hence superclass...
-    // ...
-    // hack--just output all of them per trait
-    const fields = objectType.getFields()
     const genopts = {
-      ...defaultGenOptions,
       scalars: config.scalars,
       enums: config.enumValues,
       immutable: true,
       wrapperOptions: nullWrapperOptions,
-      ...(options?.plvar ?? {}),
+      ...options?.plvar,
     }
+    const fields = config.separateInterfaces
+      ? filterFieldsWithParents(config.schema, objectType)
+      : objectType.getFields()
     // Want js.UndefOrs on anything optional and make it a var per scala.js recommendations
     // for scala.js defined, non-native  traits
     const plvars = Object.values(fields).map(f => {
       // any twiddling of options???
-      return createPLVariable(f.name, f.type, { ...genopts })
+      return createPLVariable(f.name, f.type, genopts)
     })
-    return [name, plvars, {}]
+    return [
+      name,
+      plvars,
+      {
+        extends: config.separateInterfaces ? interfaceNames(objectType) : [],
+      },
+    ]
   })
 
   return x.map(data => {

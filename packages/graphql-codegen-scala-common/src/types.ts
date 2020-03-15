@@ -17,8 +17,12 @@ import {
   getNamedType,
   getNullableType,
   isInputObjectType,
+  isInterfaceType,
+  GraphQLObjectType,
 } from "graphql"
 import { log } from "./logger"
+import { PLVariableInfo } from "./plvariable"
+import { GenerateTraitOptions } from "./trait"
 
 /** Given an OperationTypeNode , return the root (query,mutation,subscription) in the schema. */
 export function getRootType(operation: OperationTypeNode, schema: GraphQLSchema) {
@@ -44,6 +48,7 @@ export function expandIsType(t: GraphQLType) {
           .map(v => `${v.value} (${typeof v.value})`)
           .join(", ")
       : "<na>",
+    isInterface: isInterfaceType(t),
     isInput: isInputType(t),
     isInputObject: isInputObjectType(t),
     isList: isListType(t),
@@ -54,6 +59,7 @@ export function expandIsType(t: GraphQLType) {
     isObject: isObjectType(t),
     isScalar: isScalarType(t),
     isWrapping: isWrappingType(t),
+    wrappedType: isWrappingType(t) ? t : "<na>",
     getNamedType: getNamedType(t),
     getNullableType: getNullableType(t),
   }
@@ -171,4 +177,22 @@ export function mk_type_wrapper_thunk(t: GraphQLType, options?: Partial<WrapperO
     log(`appyling type wrapper ops: original type '${original_type}'`, "arg", targ, "ops", ops, " => ", r)
     return r
   }
+}
+
+/** You need three pieces of information to render a trait. This is that. */
+export type TraitRenderingInputs = [string, Array<PLVariableInfo>, Partial<GenerateTraitOptions>]
+
+/** Given a type remove all fields that are in the "parents". Filtering performed by name.
+ * Parents cannot have overlapping field names in graphql.
+ */
+export function filterFieldsWithParents(schema: GraphQLSchema, target: GraphQLObjectType) {
+  const allFields = target.getFields()
+  // construct parent types master list
+  const parents = target.getInterfaces().flatMap(tm => Object.values(tm.getFields()).map(t => t.name))
+  return Object.values(allFields).filter(f => !parents.includes(f.name))
+}
+
+/** Return a list of interface names or if none, an empty array. */
+export function interfaceNames(target: GraphQLObjectType) {
+  return target.getInterfaces().map(i => i.name)
 }
