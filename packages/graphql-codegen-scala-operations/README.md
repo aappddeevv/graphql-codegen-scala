@@ -45,6 +45,13 @@ that has a `gql` function that takes a string and produces a
 graphql `DocumentNode` via the graphql packages written in
 javascript and facaded by the `apollo_boost` scala.js facade.
 
+## Options
+
+* gqlImport: Scala package import and "gql" function to turn a string into a
+graphql DocumentNode. Depending on the scala.js facade you are using, this
+could be different. If the option is not provided, only the operation strings
+are embedded in the output.
+
 # Limitations
 
 Code generation does not handle:
