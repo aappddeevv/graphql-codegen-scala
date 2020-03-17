@@ -1,7 +1,7 @@
 {
   "name": "@aappddeevv/graphql-codegen-scala-operations",
   "main": "dist/index.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "module": "dist/index.js",
   "files": [
     "/dist"
