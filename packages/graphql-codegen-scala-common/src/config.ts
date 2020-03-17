@@ -22,8 +22,8 @@ export interface RawConfig {
    * parsed document members are not added but the raw strings are still be added.
    */
   gqlImport?: string
-  /** Applies to typeNames and enumValues. Example, lower-case#lowerCase or upper-case#upperCase.
-   * Default is pascal-case#pascalCase. Thsi is not used consistently yet.
+  /** Applies to type names and enum values. Example, lower-case#lowerCase or upper-case#upperCase.
+   * Default is pascal-case#pascalCase. Thsi is not used consistently yet so be careful when using it.
    */
   namingConvention?: NamingConvention
   /** Name of the fragment object that declares all fragment strings. Default is `Fragment` */

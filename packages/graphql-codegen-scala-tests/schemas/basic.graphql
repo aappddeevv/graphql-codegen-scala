@@ -9,6 +9,15 @@ type Query {
   getMessage(id: ID!): Message
   changeDirection(direction: Direction): Path
   getDie(numSides: Int): RandomDie
+  companyList(filter: String): CompanyList
+}
+
+"""
+Company list results.
+"""
+type CompanyList {
+  count: Int!
+  items: [Company!]!
 }
 
 type Path {
@@ -56,7 +65,7 @@ type People implements PersonLike {
 type Company {
   id: ID!
   name: String!
-  address: String
+  address: CompanyAddress
   numLocations: Int
 }
 
@@ -77,6 +86,17 @@ type RandomDie {
 Something like an address.
 """
 interface AddressLike {
+  line1: String
+  line2: String
+  zip: String
+  city: String
+  state: String
+  country: String
+  numRooms: Int
+}
+
+type CompanyAddress implements AddressLike {
+  id: ID!
   line1: String
   line2: String
   zip: String

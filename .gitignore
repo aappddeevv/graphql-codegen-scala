@@ -3,3 +3,4 @@ dist
 *.scala
 copy.sh
 *.log
+*.code-workspace

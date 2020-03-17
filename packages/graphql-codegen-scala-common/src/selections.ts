@@ -172,6 +172,7 @@ export class ResolveContext {
     public schema: GraphQLSchema,
     public fragments: ReadonlyArray<FragmentDefinitionNode>,
     public scalars: NormalizedScalarsMap
+    public 
   ) {}
   /** Find a fragment by name. */
   fragmentByName = (name: string) => this.fragments.find(f => f.name.value === name)

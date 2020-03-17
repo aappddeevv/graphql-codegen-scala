@@ -7,7 +7,8 @@
 of graphql code generators. It differs from the code generators included in the
 [apollo](https://www.apollographql.com/) platform.
 
-There are multiple code generators depending on what you want to generate.
+These packages take a schema first approach versus a code first approach like
+[caliban](https://ghostdogpr.github.io/caliban). There are multiple code generators depending on what you want to generate.
 
 - @aappddeevv/graphql-codegen-scala-operations: Generate "client" operation code.
 - @aappddeevv/graphql-codegen-scala-schema: Generate schema type code typically for the "server."

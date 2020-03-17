@@ -53,12 +53,13 @@ export const plugin: PluginFunction<RawConfig> = (
       ...config,
       externalFragments: allFragments
     });
-
+/*
     Object.entries(schema.getTypeMap()).forEach(t => {
       logme("type", t[0]);
       debug_type(t[1]);
       logme("schema type %O", t[1]);
     });
+*/
 
     const visitor = new ScalaJSOperationsVisitor(final_config);
     const visitorResult = visit(allAst, { leave: visitor as any });

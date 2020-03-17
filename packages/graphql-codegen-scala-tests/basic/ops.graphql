@@ -50,3 +50,20 @@ query die_test($numSides: Int) {
     roll(numRolls: 4)
   }
 }
+
+query allCompanies($filter: String!) {
+  companyList(filter: $filter) {
+    count
+    items {
+      id
+      name
+      address {
+        id
+        line1
+        zip
+        city
+        country
+      }
+    }
+  }
+}

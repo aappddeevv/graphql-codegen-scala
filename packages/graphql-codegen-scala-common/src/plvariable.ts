@@ -29,6 +29,8 @@ export class PLType {
 export interface PLVariableInfo {
   /** Varible name. */
   readonly name: string
+  /** Original name from graphql schema. Only include this if the name was transformed. */
+  readonly originalName?: string
   /** Base type without wrapping for null/optionality. May have
    * list wrapper though so it may not be the element type itself.
    */
@@ -45,8 +47,12 @@ export interface PLVariableInfo {
   readonly immutable?: boolean
 }
 
-/** Create a PL variable from a name, type and options.
+/** Create a PL variable from a name, type and options. Scalars and enums are searched on the bottom type
+ * for a match and if matched, the type name is mapped.
  *
+ * @param name Name from graphql.
+ * @param type GraphQL type.
+ * @param options Conversion options.
  * @todo Does not properly handle dotted path names but does initialize PLType correctly.
  */
 export function createPLVariable(name: string, type: GraphQLType, options?: Partial<GenOptions>): PLVariableInfo {
@@ -56,10 +62,14 @@ export function createPLVariable(name: string, type: GraphQLType, options?: Part
   const bottom_name = named_type.name
   let tname = null
   // quest to determine tname
+  let scalar_converted = false
+  let enum_converted = false
   if (isScalarType(named_type) && opts.scalars && opts.scalars[bottom_name]) {
     tname = opts.scalars[bottom_name]
+    scalar_converted = true
   } else if (opts.enums && opts.enums[bottom_name]) {
     tname = opts.enums[bottom_name].typeIdentifier || opts.enums[bottom_name].sourceIdentifier
+    enum_converted = true
   } else {
     tname = bottom_name
   }
@@ -70,8 +80,10 @@ export function createPLVariable(name: string, type: GraphQLType, options?: Part
   let defaultValue = opts.defaultValue
   if (!defaultValue && isListType(type)) defaultValue = opts.wrapperOptions.mkListZero(tname)
   else if (!defaultValue && !isNonNullType(type)) defaultValue = opts.wrapperOptions.mkOptZero(tname)
+  const newName = opts.convertName ? opts.convertName(name) : name
   return {
-    name: name,
+    name: newName,
+    originalName: newName !== name ? name : undefined,
     type: new PLType(tname, domain),
     wrapper: mk_type_wrapper_thunk(type, opts.wrapperOptions),
     defaultValue,
@@ -97,6 +109,8 @@ export type GenOptions = Partial<Pick<PLVariableInfo, "documentation" | "comment
   wrapperOptions?: Partial<WrapperOptions>
   /** Some type of default value. Very opaque. */
   defaultValue?: any
+  /** Convert the graphql schema name via this thunk.*/
+  convertName?: (name: string) => string
 }
 
 /** Default gen options. */

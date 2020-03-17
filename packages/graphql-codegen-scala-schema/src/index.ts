@@ -69,7 +69,6 @@ export const plugin: PluginFunction<RawConfig> = (
 
     return {
       prepend: [
-        "// This is a prototype code generator and the code below will be wrong...",
         ...genImports([
           "scala.scalajs.js",
           "js.|",
@@ -81,7 +80,6 @@ export const plugin: PluginFunction<RawConfig> = (
         interfaceTypes,
         inputObjectTypes,
         objectTypes
-        //...visitorResult.definitions.filter(t => typeof t === "string")
       ].join("\n")
     };
   } catch (e) {

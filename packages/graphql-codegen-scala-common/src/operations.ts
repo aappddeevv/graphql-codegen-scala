@@ -200,8 +200,8 @@ export interface RecurseContext {
 
 /** Render traits recursively, output hierarchical/dependent types. */
 export function renderRecursiveData(selects: ResolvedSelectionSet, ctx: ResolveContext, state: RecurseContext) {
-  if (!selects) throw new Error("selects is null")
-  const logme = log.extend("_renderRecursiveData")
+  if (!selects) throw new Error("renderRecursiveData: selects is null")
+  const logme = log.extend("renderRecursiveData")
   const name = selects.ofType.name
   const newstate = { ...state, path: state.path.concat([name]) }
   const path = state.path.join(".")
@@ -217,7 +217,7 @@ export function renderRecursiveData(selects: ResolvedSelectionSet, ctx: ResolveC
   const subObjectFields = subObjects.map(s => s[0].toPLVariable(genopts))
   // input objects are always pulled out to their own trait
   const nested = subObjects
-    .filter(p => graphql.isInputObjectType(p[0].field.type))
+    .filter(p => !graphql.isInputObjectType(p[0].field.type))
     .map(p => renderRecursiveData(p[1], ctx, newstate))
     .join("\n")
 

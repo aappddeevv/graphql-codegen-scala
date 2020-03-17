@@ -86,11 +86,12 @@ export function generateScalaJSTrait(
   )
   const opts = { ...defaultOptions, ...options } as GenerateTraitOptions
   const fqn = opts.fqn ?? name
-  const declarations = variables.map(t => {
-    const comment = opts.makeComment && t.comment ? opts.makeComment(t.comment) + "\n" : ""
-    const decl = t.immutable ?? true ? "val" : "var"
-    const defaultValuePart = opts.ignoreDefaultValuesInTrait ? "" : ` = ${t.defaultValue}`
-    return `${comment} ${decl} ${t.name}: ${t.wrapper(t.type.name)}${defaultValuePart}`
+  const declarations = variables.map(info => {
+    const comment = opts.makeComment && info.comment ? opts.makeComment(info.comment) + "\n" : ""
+    const decl = info.immutable ?? true ? "val" : "var"
+    const defaultValuePart = opts.ignoreDefaultValuesInTrait ? "" : info.defaultValue ? ` = ${info.defaultValue}` : ""
+    const mapping = info.originalName && opts.scalajs ? `@scala.scalajs.js.annotation.Name(${info.originalName})` : ""
+    return `${comment} ${mapping} ${decl} ${info.name}: ${info.wrapper(info.type.name)}${defaultValuePart}`
   })
 
   const description = opts.makeDescription && opts.description ? [opts.makeDescription(opts.description)] : []
