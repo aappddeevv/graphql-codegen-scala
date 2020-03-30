@@ -4,3 +4,5 @@ dist
 copy.sh
 *.log
 *.code-workspace
+*.swp
+*.backup

@@ -2,6 +2,7 @@
 export DEBUG=1 
 export VERBOSE=1
 export DEBUG_DEPTH=10
+export NODE_OPTIONS="--enable-source-maps"
 
 TFILE=test.yml
 if [ $# -gt 0 ]; then

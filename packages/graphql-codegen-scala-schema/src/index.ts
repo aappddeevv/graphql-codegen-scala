@@ -49,14 +49,15 @@ export const plugin: PluginFunction<RawConfig> = (
       externalFragments: allFragments
     });
 
-    const inputObjectTypes = genInputObjectTypes(final_config).join("\n");
+    const inputObjectTypes = genInputObjectTypes(final_config, { trait: { ignoreDefaultValuesInTrait: true }}).join("\n");
 
     const interfaceTypes = final_config.separateInterfaces
       ? genInterfaceTypes(final_config, {
           trait: {
             native: false,
             ignoreDefaultValuesInTrait: true,
-            includeCompanion: true
+            // no apply, unapply or copy methods for pure interfaces
+            includeCompanion: false,
           }
         }).join("\n")
       : "";

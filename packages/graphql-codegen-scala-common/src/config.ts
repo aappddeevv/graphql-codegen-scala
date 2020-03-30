@@ -42,6 +42,12 @@ export interface RawConfig {
   outputOperationNameWrangling?: boolean
   /** Interface should be declared separately and inheritance used. Default is true.*/
   separateInterfaces?: boolean
+  /** Data traits in operations will extend these classes. NOT SURE THIS IS GOOD. DON'T USE. */
+  operationDataTraitSupers?: Array<string>
+  /** Operation "Variables" trait extensions. DON'T USE. */
+  operationVariablesTraitSupers?: Array<string>
+  /** Type traits generated from the schema will extend these classes. DON'T USE. */
+  typeTraitSupers?: Array<string>
 }
 
 /** Final processed configuration taking into account defaults. */
@@ -58,6 +64,9 @@ export interface Config {
   isolateFragments: boolean
   outputOperationNameWrangling: boolean
   separateInterfaces: boolean
+  operationDataTraitSupers: Array<string>
+  operationVariablesTraitSupers: Array<string>
+  typeTraitSupers: Array<string>
 }
 
 /** Given a list of LoadedFragment objects, return the raw FragmentDefinitionNode AST
@@ -86,6 +95,9 @@ export function makeConfig(schema: GraphQLSchema, raw: RawConfig): Config {
     isolateFragments: raw.isolateFragments ?? true,
     outputOperationNameWrangling: raw.outputOperationNameWrangling ?? true,
     separateInterfaces: raw.separateInterfaces ?? true,
+    operationDataTraitSupers: raw.operationDataTraitSupers,
+    operationVariablesTraitSupers: raw.operationVariablesTraitSupers,
+    typeTraitSupers: raw.typeTraitSupers,
   }
 }
 

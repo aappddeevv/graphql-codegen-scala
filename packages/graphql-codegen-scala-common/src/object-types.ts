@@ -40,20 +40,30 @@ export function genObjectTypes(
       wrapperOptions: nullWrapperOptions,
       ...options?.plvar,
     }
-    const fields = config.separateInterfaces
-      ? filterFieldsWithParents(config.schema, objectType)
-      : objectType.getFields()
-    // Want js.UndefOrs on anything optional and make it a var per scala.js recommendations
-    // for scala.js defined, non-native  traits
-    const plvars = Object.values(fields).map(f => {
-      // any twiddling of options???
-      return createPLVariable(f.name, f.type, genopts)
-    })
+
+    const allFields = Object.values(objectType.getFields())
+    const allFieldsConverted = allFields.map(f => createPLVariable(f.name, f.type, genopts))
+    const directFieldNames = filterFieldsWithParents(config.schema, objectType).map(f => f.name)
+    const directFields = allFieldsConverted.filter(plvar => directFieldNames.includes(plvar.name))
+    const extraFields = allFieldsConverted.filter(plvar => !directFieldNames.includes(plvar.name))
+    const plvars = config.separateInterfaces ? directFields : allFieldsConverted
+    logme(
+      `Type ${name}: # total fields: ${allFields.length}, # direct: ${directFields.length}, # extra: ${extraFields.length}, # fields for trait: ${plvars.length}, # extras: ${extraFields.length}`
+    )
+
+    const additionalOptions = config.separateInterfaces
+      ? {
+          companionExtraProperties: extraFields,
+          companionIncludesAllProperites: true,
+        }
+      : {}
+
     return [
       name,
       plvars,
       {
         extends: config.separateInterfaces ? interfaceNames(objectType) : [],
+        ...additionalOptions,
       },
     ]
   })

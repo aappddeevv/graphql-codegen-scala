@@ -89,7 +89,10 @@ export class ScalaJSOperationsVisitor {
       .map(so =>
         renderRecursiveData(so[1], ctx, {
           path: ["Data"],
-          traitOptions: { ignoreDefaultValuesInTrait: true },
+          traitOptions: {
+            extends: this.config.operationDataTraitSupers,
+            ignoreDefaultValuesInTrait: true,
+          },
         })
       )
       .join("\n")
@@ -102,13 +105,17 @@ export class ScalaJSOperationsVisitor {
       native: true,
       nested,
       ignoreDefaultValuesInTrait: true,
+      // the top level data trait does not get the extension
+      //extends: this.config.operationDataTraitSupers,
     })
   }
 
   protected _buildOperationVariables = (node: OperationDefinitionNode): string => {
     if (node.variableDefinitions.length > 0) {
       const operationVariables = this._variablesTransformer.transform<VariableDefinitionNode>(node.variableDefinitions)
-      return generateScalaJSTrait("Variables", operationVariables)
+      return generateScalaJSTrait("Variables", operationVariables, {
+        extends: this.config.operationVariablesTraitSupers,
+      })
     }
     return ""
   }

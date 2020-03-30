@@ -3,14 +3,23 @@ import { getRootType } from "./types"
 import { log } from "./logger"
 import { PLVariableInfo } from "./plvariable"
 
+const logme = log.extend("trait")
+
+/** Target platform. */
+export enum PlatformTarget {
+  SCALA,
+  SCALAJS,
+}
+
 /** Trait generation options. Large bag values :-) */
-export interface GenerateTraitOptions {
-  /** If trait should have `@js.native` added. */
-  native: boolean
+export interface GenerateTraitOptionsCommon {
   nested: string
   includeCompanion: boolean
   includeCopy: boolean
   includeApply: boolean
+  /** Include an unapply method. If there are more than 22 vars, it is skipped
+   * due to scala tuple limitations.
+   */
   includeUnapply: boolean
   /** In the trait definition itself, ignore member default values for all members. This flag
    * does not apply to companion object function definions like `apply`.
@@ -20,18 +29,36 @@ export interface GenerateTraitOptions {
    * Use this thunk to massage the value into the right expression.
    */
   dynamicValueConversion: (value: string) => string
-  /** Trait extends/withs. */
+  /** Trait extends/withs. It is possible that a render automatically adds its own extend classes. */
   extends?: ReadonlyArray<string>
   /** If defined, use this fqn instead of the name in all places except trait and object declaration. */
   fqn?: string
-  /** Whether generation is for scalajs. */
+  /** Whether generation is for scalajs. This should probably be an enum. */
   scalajs?: boolean
+  /** Target platform. Not used yet as I'm not sure its needed--wish we had
+   * typeclass and implicits in typescript.
+   */
+  target: PlatformTarget
   /** Trait description. */
   description?: string
   /** Generate a comment string for a property member *not* for the trait. */
   makeComment?: (s: string) => string
   /** Generate a trait level description. */
   makeDescription?: (s: string) => string
+  /** If companion methods are generated, use all properties and
+   * not just the ones declared in the immediate trait.
+   */
+  companionIncludesAllProperties?: boolean
+  /** If companionIncludesAllProperties is true, these properties are also included
+   * in companion methods.
+   */
+  companionExtraProperties?: Array<PLVariableInfo>
+}
+
+/** Trait generation options. */
+export interface GenerateTraitOptions extends GenerateTraitOptionsCommon {
+  /** If trait should have `@js.native` added. */
+  native: boolean
 }
 
 /** Default trait generation options for scala.js. */
@@ -49,6 +76,16 @@ export const defaultOptions: GenerateTraitOptions = {
   makeComment: (s: string) => `// ${s}`,
   makeDescription: (s: string) => `/** ${s} */`,
   extends: [],
+  target: PlatformTarget.SCALA,
+  companionIncludesAllProperties: true,
+  companionExtraProperties: [],
+}
+
+/** Defalut options for scala.js generation. Don't use this yet. */
+export const scalaJSDefaultOptions: GenerateTraitOptions = {
+  ...defaultOptions,
+  target: PlatformTarget.SCALAJS,
+  extends: ["org.scalajs.js.Object"],
 }
 
 /** Generate an object with some nested content. Very simple
@@ -76,14 +113,7 @@ export function generateScalaJSTrait(
   variables: Array<PLVariableInfo>,
   options?: Partial<GenerateTraitOptions>
 ) {
-  const logme = log.extend("generateTrait")
-  logme(
-    `trait name ${name}, fields`,
-    variables.map(p => ({
-      name: p.name,
-      type: p.type,
-    }))
-  )
+  const logmeth = logme.extend("generateTrait")
   const opts = { ...defaultOptions, ...options } as GenerateTraitOptions
   const fqn = opts.fqn ?? name
   const declarations = variables.map(info => {
@@ -97,6 +127,7 @@ export function generateScalaJSTrait(
   const description = opts.makeDescription && opts.description ? [opts.makeDescription(opts.description)] : []
   const supers = [...(opts.scalajs ? ["scala.scalajs.js.Object"] : []), ...(opts.extends ?? [])]
 
+  logmeth(`Trait ${name} will have ${declarations.length} properties.`)
   const trait = [
     ...description,
     opts.native ? "@js.native" : "",
@@ -105,9 +136,15 @@ export function generateScalaJSTrait(
     "}",
   ]
 
-  const v = variables // alias for below
+  const include_extras = options.companionIncludesAllProperties ?? true
+  const extras = include_extras ? options.companionExtraProperties ?? [] : []
 
-  const companion_copy = `implicit class Copy(private val orig: ${fqn}) extends AnyVal {
+  // alias for below, because 'variables' is too long :-)
+  const v = variables.concat(extras)
+  logmeth(`Companion object ${name} will deploy ${v.length} properties. # extra properties was ${extras.length}.`)
+  logmeth(`   Include extras? ${include_extras}`)
+
+  const companion_copy = () => `implicit class Copy(private val orig: ${fqn}) extends AnyVal {
     def copy(${v.map(d => `${d.name}: ${d.wrapper(d.type.name)}=orig.${d.name}`).join(", ")}) =
       js.Dynamic.literal(${v
         .map(d => `"${d.name}" -> ${opts.dynamicValueConversion(d.name)}`)
@@ -115,7 +152,7 @@ export function generateScalaJSTrait(
     }`
 
   // if variables is empty, are any of these invalid???
-  const companion_apply = `
+  const companion_apply = () => `
           def apply(${v
             .map(d => `${d.name}: ${d.wrapper(d.type.name)} ${d.defaultValue ? `= ${d.defaultValue}` : ""}`)
             .join(",")}) = 
@@ -123,17 +160,20 @@ export function generateScalaJSTrait(
               .map(d => `"${d.name}" -> ${opts.dynamicValueConversion(d.name)}`)
               .join(", ")}).asInstanceOf[${fqn}]
               `
-  const companion_unapply = `
+  const companion_unapply = () =>
+    v.length < 22
+      ? `
           def unapply(value: ${fqn}) =
              Some((${v.map(d => `value.${d.name}`).join(", ")}))
           `
+      : ""
 
   const companion = opts.includeCompanion
     ? [
         `object ${name} {`,
-        opts.includeApply ? companion_apply : "",
-        opts.includeUnapply ? companion_unapply : "",
-        opts.includeCopy ? companion_copy : "",
+        opts.includeApply ? companion_apply() : "",
+        opts.includeUnapply ? companion_unapply() : "",
+        opts.includeCopy ? companion_copy() : "",
         ...(opts.nested ? [options.nested] : []),
         `} // end ${name} companion`,
       ]

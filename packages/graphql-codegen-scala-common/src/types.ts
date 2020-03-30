@@ -133,22 +133,22 @@ export function mk_type_wrapper_thunk(t: GraphQLType, options?: Partial<WrapperO
     if (!nnt && !lt) r = "N"
     else if (lt) r = "L"
     else r = "-"
-    log(
-      "determining type wrapper op",
-      t,
-      "wt:",
-      w,
-      ", lt:",
-      lt,
-      ", nnt:",
-      nnt,
-      ", ofType:",
-      ofType,
-      ", ofType wt:",
-      ofTypeW,
-      ", result => ",
-      r
-    )
+    // log(
+    //   "determining type wrapper op",
+    //   t,
+    //   "wt:",
+    //   w,
+    //   ", lt:",
+    //   lt,
+    //   ", nnt:",
+    //   nnt,
+    //   ", ofType:",
+    //   ofType,
+    //   ", ofType wt:",
+    //   ofTypeW,
+    //   ", result => ",
+    //   r
+    // )
     ops.push(r)
     t = ofType
     w = t ? isWrappingType(t) : false
@@ -174,7 +174,7 @@ export function mk_type_wrapper_thunk(t: GraphQLType, options?: Partial<WrapperO
           return p
       }
     }, targ)
-    log(`appyling type wrapper ops: original type '${original_type}'`, "arg", targ, "ops", ops, " => ", r)
+    //log(`appyling type wrapper ops: original type '${original_type}'`, "arg", targ, "ops", ops, " => ", r)
     return r
   }
 }
@@ -183,7 +183,8 @@ export function mk_type_wrapper_thunk(t: GraphQLType, options?: Partial<WrapperO
 export type TraitRenderingInputs = [string, Array<PLVariableInfo>, Partial<GenerateTraitOptions>]
 
 /** Given a type remove all fields that are in the "parents". Filtering performed by name.
- * Parents cannot have overlapping field names in graphql.
+ * Parents cannot have overlapping field names in graphql but your programming language
+ * can use actual inheritance.
  */
 export function filterFieldsWithParents(schema: GraphQLSchema, target: GraphQLObjectType) {
   const allFields = target.getFields()
