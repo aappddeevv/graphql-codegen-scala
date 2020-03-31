@@ -5,6 +5,8 @@ Generate scala code from the schema.
 This is a prototype code generator for generating types from the schema and may not generate anything useful for
 your application. Check back soon or you can try and see if it is helpful.
 
+## Code Generation
+
 By default this generates:
 
 * Input traits as scala.js, non-native traits. Input optional types use null, which is how they are specified in graphql.

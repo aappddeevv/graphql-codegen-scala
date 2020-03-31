@@ -43,7 +43,7 @@ type Message {
 }
 
 """
-An input type called MesasgeInput. Great comment!
+An input type called MessageInput. Great comment!
 """
 input MessageInput {
   content: String

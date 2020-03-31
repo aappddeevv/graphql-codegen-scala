@@ -11,7 +11,9 @@ export enum PlatformTarget {
   SCALAJS,
 }
 
-/** Trait generation options. Large bag values :-) */
+/** Trait generation options. Large bag values :-)
+ *
+ */
 export interface GenerateTraitOptionsCommon {
   nested: string
   includeCompanion: boolean
@@ -53,6 +55,8 @@ export interface GenerateTraitOptionsCommon {
    * in companion methods.
    */
   companionExtraProperties?: Array<PLVariableInfo>
+  /** Trait modifiers added to any implicitly added by the generator, e.g., `@coolannotation`. */
+  mods: Array<string>
 }
 
 /** Trait generation options. */
@@ -72,20 +76,21 @@ export const defaultOptions: GenerateTraitOptions = {
   fqn: undefined,
   scalajs: true,
   nested: "",
-  dynamicValueConversion: (value: string) => `${value}.asInstanceOf[js.Any]`,
+  dynamicValueConversion: (value: string) => `${value}.asInstanceOf[_root_.scala.scalajs.js.Any]`,
   makeComment: (s: string) => `// ${s}`,
   makeDescription: (s: string) => `/** ${s} */`,
   extends: [],
   target: PlatformTarget.SCALA,
   companionIncludesAllProperties: true,
   companionExtraProperties: [],
+  mods: [],
 }
 
 /** Defalut options for scala.js generation. Don't use this yet. */
 export const scalaJSDefaultOptions: GenerateTraitOptions = {
   ...defaultOptions,
   target: PlatformTarget.SCALAJS,
-  extends: ["org.scalajs.js.Object"],
+  extends: ["_root_.scala.scalajs.js.Object"],
 }
 
 /** Generate an object with some nested content. Very simple
@@ -107,6 +112,8 @@ export function createExtends(e: ReadonlyArray<string>) {
 
 /** Generate a trait with a companion object and additional "helper"
  * methods. You can nest raw content using `options.nested`.
+ *
+ * @param name Name of trait. This is not mangled by anything in the options so it should be the final name.
  */
 export function generateScalaJSTrait(
   name: string,
@@ -115,23 +122,29 @@ export function generateScalaJSTrait(
 ) {
   const logmeth = logme.extend("generateTrait")
   const opts = { ...defaultOptions, ...options } as GenerateTraitOptions
+  logmeth(`Generate trait: ${name}`)
+  logmeth("   options: %O", opts)
   const fqn = opts.fqn ?? name
   const declarations = variables.map(info => {
     const comment = opts.makeComment && info.comment ? opts.makeComment(info.comment) + "\n" : ""
     const decl = info.immutable ?? true ? "val" : "var"
     const defaultValuePart = opts.ignoreDefaultValuesInTrait ? "" : info.defaultValue ? ` = ${info.defaultValue}` : ""
-    const mapping = info.originalName && opts.scalajs ? `@scala.scalajs.js.annotation.Name(${info.originalName})` : ""
-    return `${comment} ${mapping} ${decl} ${info.name}: ${info.wrapper(info.type.name)}${defaultValuePart}`
+    const mapping =
+      info.originalName && opts.scalajs ? `@_root_.scala.scalajs.js.annotation.Name(${info.originalName})` : ""
+    return `${comment} ${mapping} ${decl} ${info.name}: ${info.wrapper(info.type.qn)}${defaultValuePart}`
   })
 
   const description = opts.makeDescription && opts.description ? [opts.makeDescription(opts.description)] : []
-  const supers = [...(opts.scalajs ? ["scala.scalajs.js.Object"] : []), ...(opts.extends ?? [])]
+  const supers = [...(opts.scalajs ? ["_root_.scala.scalajs.js.Object"] : []), ...(opts.extends ?? [])]
 
-  logmeth(`Trait ${name} will have ${declarations.length} properties.`)
+  logmeth(`Trait ${name}`)
+  logmeth(`      properties (${declarations.length}): ${variables.map(v => v.name)}`)
+  const allMods = [...(opts.native ? ["@js.native"] : []), ...(opts.mods ? opts.mods : [])]
+  logmeth(`      modifiers: ${allMods}`)
+
   const trait = [
     ...description,
-    opts.native ? "@js.native" : "",
-    `trait ${name} ${createExtends(supers).join(" ")} {`,
+    `${allMods.join(" ")} trait ${name} ${createExtends(supers).join(" ")} {`,
     declarations.join("\n"),
     "}",
   ]
@@ -145,8 +158,8 @@ export function generateScalaJSTrait(
   logmeth(`   Include extras? ${include_extras}`)
 
   const companion_copy = () => `implicit class Copy(private val orig: ${fqn}) extends AnyVal {
-    def copy(${v.map(d => `${d.name}: ${d.wrapper(d.type.name)}=orig.${d.name}`).join(", ")}) =
-      js.Dynamic.literal(${v
+    def copy(${v.map(d => `${d.name}: ${d.wrapper(d.type.qn)}=orig.${d.name}`).join(", ")}) =
+      _root_.scala.scalajs.js.Dynamic.literal(${v
         .map(d => `"${d.name}" -> ${opts.dynamicValueConversion(d.name)}`)
         .join(", ")}).asInstanceOf[${fqn}]
     }`
@@ -154,9 +167,9 @@ export function generateScalaJSTrait(
   // if variables is empty, are any of these invalid???
   const companion_apply = () => `
           def apply(${v
-            .map(d => `${d.name}: ${d.wrapper(d.type.name)} ${d.defaultValue ? `= ${d.defaultValue}` : ""}`)
+            .map(d => `${d.name}: ${d.wrapper(d.type.qn)} ${d.defaultValue ? `= ${d.defaultValue}` : ""}`)
             .join(",")}) = 
-            js.Dynamic.literal(${v
+            _root_.scala.scalajs.js.Dynamic.literal(${v
               .map(d => `"${d.name}" -> ${opts.dynamicValueConversion(d.name)}`)
               .join(", ")}).asInstanceOf[${fqn}]
               `

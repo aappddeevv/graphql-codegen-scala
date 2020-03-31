@@ -67,3 +67,8 @@ query allCompanies($filter: String!) {
     }
   }
 }
+
+query testSameType($filter: String) { 
+  list1: peopleList(filter: $filter) { id firstname } 
+  list2: peopleList(filter: $filter) { lastname }
+}

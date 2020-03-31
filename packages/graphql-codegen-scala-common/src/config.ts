@@ -42,7 +42,9 @@ export interface RawConfig {
   outputOperationNameWrangling?: boolean
   /** Interface should be declared separately and inheritance used. Default is true.*/
   separateInterfaces?: boolean
-  /** Data traits in operations will extend these classes. NOT SURE THIS IS GOOD. DON'T USE. */
+  /** Data traits in operations will extend these classes. NOT SURE THIS IS GOOD. DON'T USE.
+   * Only applies to types enclosed by the topmost Data trait for each operation.
+   */
   operationDataTraitSupers?: Array<string>
   /** Operation "Variables" trait extensions. DON'T USE. */
   operationVariablesTraitSupers?: Array<string>

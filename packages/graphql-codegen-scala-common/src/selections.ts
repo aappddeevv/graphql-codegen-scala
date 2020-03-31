@@ -219,7 +219,7 @@ export class ResolvedSelectionSet {
  */
 export class ResolvedField {
   constructor(
-    /** Name of field may be influenced by alias and not what "field" says. */
+    /** Name of field may be influenced by an alias so name may not always match `field.name`. */
     public name: string,
     /** Resolved field type. */
     public field: GraphQLField<any, any, {}>,
@@ -227,7 +227,9 @@ export class ResolvedField {
     public ofType: GraphQLObjectType,
     /** Subfields, if any, in AST format. They are not resolved. */
     public selectionSet: ReadonlyArray<SelectionNode>,
-    /** Allow you to add some variable generation options. This probably breaks the abstraction a bit. */
+    /** Allow you to add some variable generation options. This probably breaks the abstraction a bit
+     * so try not to use this as it may disappear.
+     */
     public genOptions?: Partial<Pick<PLVariableInfo, "documentation" | "comment">>
   ) {
     if (log.enabled) {

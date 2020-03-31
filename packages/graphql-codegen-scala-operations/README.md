@@ -38,12 +38,65 @@ generates:
         - scalafmt
 ```
 
-You only need the scalafmt hook if you want to read clean sources.
-Skipping gqlImport means that the documents are not inlined into
+You only need the scalafmt hook if you want to read clean sources
+and have scalafmt installed as a command line program.
+
+Skipping gqlImport means that the graphql documents are not inlined into
 the operation objects. `apollo_boost` is scala.js published package
 that has a `gql` function that takes a string and produces a
 graphql `DocumentNode` via the graphql packages written in
 javascript and facaded by the `apollo_boost` scala.js facade.
+
+## Code Generation
+
+Code generation is conservative and does not seek to minimize the amount
+of code generated. For example, each operation is expanded with its
+own unique set of types. Since response shapes are a strict subset
+of the schema type, each trait property has its own hierarchy
+of types. This minimizes the use of "optional" variables
+and makes them more ergonomic to use. However, the names of the types
+must be slightly transformed since a response may multiple version of the 
+same graphql type but with a different set of properties.
+
+```graphql
+Query { 
+  request1: Person
+  request2: Person
+}
+
+type Person {
+  Lastname: String
+  Firstname: String
+}
+
+// ops
+query Foo {
+  request1: Person { Lastname }
+  request2: Person { Firstname)
+}
+```
+
+will generate
+
+```scala
+object FooQuery {
+  // ...
+  trait Data {
+    val request1: Request1_Person | Null
+    val request2: Request2_Person | Null
+  }
+  object Data {
+    trait Request1_Person { 
+      val Lastname: String | Null
+    }
+    // ...
+    trait Request2_Person { 
+      val Firstname: String | Null
+    }
+    // ...
+  }
+}
+```
 
 ## Options
 
@@ -58,7 +111,7 @@ Code generation does not handle:
 
 - unions, union extensions
 - inline fragment spreads
-- enum extensions
+- enum extensions (but it handles enums)
 - default values
 - other things buried deep in the graphql spec...
 

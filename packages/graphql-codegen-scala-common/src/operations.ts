@@ -3,12 +3,12 @@ import * as graphql from "graphql"
 import { pascalCase } from "pascal-case"
 import OperationVariablesToObject from "./OperationVariablesToObject"
 import { getRootType } from "./types"
-import { ResolveContext, selectionSetToObject, ResolvedSelectionSet } from "./selections"
+import { ResolveContext, selectionSetToObject, ResolvedSelectionSet, ResolvedField } from "./selections"
 import { Config, parseImport, fragmentDefinitions } from "./config"
 import { log } from "./logger"
 import { generateScalaJSTrait, generateScalaObject, GenerateTraitOptions } from "./trait"
 import { makeGQLForScala } from "./gql"
-import { GenOptions } from "./plvariable"
+import { GenOptions, PLVariableInfo } from "./plvariable"
 
 /** Generate generic scala.js graphql data and data structures.
  * Each operation becomes one scala object.
@@ -80,15 +80,32 @@ export class ScalaJSOperationsVisitor {
     )
     const genopts = {
       scalars: this.config.scalars,
-      objectsHaveParentType: "Data",
+      //objectsHaveParentType: "Data",
+      path: ["Data"],
+      enums: this.config.enumValues,
     } as GenOptions
+
+    // simple fields are easy
     const simpleFields = resolved ? resolved.leaves.map(f => f.toPLVariable(genopts)) : []
+
+    // object fields require recursion
     const subObjects = resolved ? resolved.resolveComplex(ctx) : []
-    const subObjectFields = subObjects.map(p => p[0].toPLVariable({ ...genopts }))
+    const subObjectFields = subObjects.map(p =>
+      p[0].toPLVariable({ ...genopts, convertTypeName: (tname: string) => `${pascalCase(p[0].name)}_${tname}` })
+    )
+
+    // generate recrusive (object fields) content
     const nested = subObjects
       .map(so =>
         renderRecursiveData(so[1], ctx, {
           path: ["Data"],
+          convertName: (traitName: string) => `${pascalCase(so[0].name)}_${traitName}`,
+          plvarOptions: (f: ResolvedField) => ({
+            convertTypeName: (tname: string) => {
+              logme(`Calling tname fiddler for ${tname}`)
+              return f.isObject ? `${pascalCase(f.name)}_${tname}` : tname
+            },
+          }),
           traitOptions: {
             extends: this.config.operationDataTraitSupers,
             ignoreDefaultValuesInTrait: true,
@@ -201,31 +218,56 @@ export function generateOperationName(node: OperationDefinitionNode): [boolean, 
 }
 
 export interface RecurseContext {
+  /** The domain name path. */
   path: Array<string>
+  /** Convert the name (leaf of the domain name) to a new name and use it for trait declaration. */
+  convertName?: (traitName: string) => string
+  /** Options for generating the trait. */
   traitOptions?: Partial<GenerateTraitOptions>
+  /** Options for the fields in the trait being generated. */
+  plvarOptions?: (f: ResolvedField) => Partial<GenOptions>
 }
 
-/** Render traits recursively, output hierarchical/dependent types. */
+/** Render traits recursively, output hierarchical/dependent types.
+ *
+ * @note In scala, this would be a typeclass.
+ */
 export function renderRecursiveData(selects: ResolvedSelectionSet, ctx: ResolveContext, state: RecurseContext) {
   if (!selects) throw new Error("renderRecursiveData: selects is null")
   const logme = log.extend("renderRecursiveData")
-  const name = selects.ofType.name
-  const newstate = { ...state, path: state.path.concat([name]) }
-  const path = state.path.join(".")
-  const fqn = `${path}.${name}`
+  const base_name = selects.ofType.name
+  const name = state.convertName ? state.convertName(base_name) : base_name
+  const newstate: RecurseContext = { ...state, path: state.path.concat([name]) }
+  const fqn = `${state.path.join(".")}.${name}`
   const genopts = {
     scalars: ctx.scalars,
-    objectsHaveParentType: newstate.path.join("."),
+    //objectsHaveParentType: newstate.path.join("."),
+    path: newstate.path,
   } as GenOptions
-  const directs = selects.leaves.map(f => f.toPLVariable(genopts))
-  logme(`Generating trait ${path}.${name}`)
+  const directs = selects.leaves.map(f =>
+    f.toPLVariable({
+      ...genopts,
+      ...(state.plvarOptions ? state.plvarOptions(f) : {}),
+    })
+  )
+  logme(`Generating trait ${name}`)
 
   const subObjects = selects.resolveComplex(ctx)
-  const subObjectFields = subObjects.map(s => s[0].toPLVariable(genopts))
+  const subObjectFields = subObjects.map(s =>
+    s[0].toPLVariable({
+      ...genopts,
+      ...(state.plvarOptions ? state.plvarOptions(s[0]) : {}),
+    })
+  )
   // input objects are always pulled out to their own trait
   const nested = subObjects
     .filter(p => !graphql.isInputObjectType(p[0].field.type))
-    .map(p => renderRecursiveData(p[1], ctx, newstate))
+    .map(p =>
+      renderRecursiveData(p[1], ctx, {
+        ...newstate,
+        convertName: (traitName: string) => `${pascalCase(p[0].name)}_${traitName}`,
+      })
+    )
     .join("\n")
 
   return generateScalaJSTrait(name, [...directs, ...subObjectFields], {
