@@ -25,7 +25,7 @@ export interface VariableLike {
  * a query/mutation/subscription that can are reused in
  * different parts of the operation.
  *
- * @depracated Use other things to do this then retire this class.
+ * @deprecated Use other things to do this then retire this class.
  */
 export class OperationVariablesToObject {
   constructor(
@@ -117,7 +117,8 @@ export class OperationVariablesToObject {
       name: formattedFieldString,
       type: pltype,
       wrapper,
-      defaultValue: isNonNullType ? undefined : undefWrapperOptions.mkOptZero(pltype.name),
+      //defaultValue: isNonNullType ? undefined : undefWrapperOptions.mkOptZero(pltype.name),
+      defaultValue: undefined,
     }
   }
 

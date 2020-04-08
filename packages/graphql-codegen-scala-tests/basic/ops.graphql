@@ -72,3 +72,11 @@ query testSameType($filter: String) {
   list1: peopleList(filter: $filter) { id firstname } 
   list2: peopleList(filter: $filter) { lastname }
 }
+
+
+query testArrayArgument($items: [String] = ["blah", "hah"]) {
+   test(items: $items) {
+     count
+     items { id name }
+   }
+}

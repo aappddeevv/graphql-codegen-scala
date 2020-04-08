@@ -10,6 +10,7 @@ type Query {
   changeDirection(direction: Direction): Path
   getDie(numSides: Int): RandomDie
   companyList(filter: String): CompanyList
+  test(items: [String]!): CompanyList
 }
 
 """

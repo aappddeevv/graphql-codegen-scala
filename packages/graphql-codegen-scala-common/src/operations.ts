@@ -60,6 +60,7 @@ export class ScalaJSOperationsVisitor {
     return [rawOp, docOp].filter(a => a).join("\n")
   }
 
+  /** Start recursion through the types. */
   protected _buildOperationResultTypes = (
     node: OperationDefinitionNode,
     operationRootType: graphql.GraphQLObjectType
@@ -128,10 +129,15 @@ export class ScalaJSOperationsVisitor {
   }
 
   protected _buildOperationVariables = (node: OperationDefinitionNode): string => {
+    const logme = log.extend("_bulidOperationsVariables")
+    logme(
+      `Note that all default values for Variables will not be added either to the trait or the apply method. How should we handle them?`
+    )
     if (node.variableDefinitions.length > 0) {
       const operationVariables = this._variablesTransformer.transform<VariableDefinitionNode>(node.variableDefinitions)
       return generateScalaJSTrait("Variables", operationVariables, {
         extends: this.config.operationVariablesTraitSupers,
+        ignoreDefaultValuesInTrait: true,
       })
     }
     return ""

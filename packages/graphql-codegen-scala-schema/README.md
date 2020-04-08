@@ -13,6 +13,11 @@ By default this generates:
 * Interfaces have no companion objects.
 * Types that inherit from interfaces have companion methods that take into account that type's properties as well as properties from interfaces.
 
+Things to watch out for:
+
+* If a type implements an interface and the type change from null/not-null or vice-versa, the generator tries to generate
+types consistent with the original definition and generates the wrong code.
+
 ## Options
 
 * separateInterfaces: boolean. Types will have interfaces factored out. If true, separate traits are generated and

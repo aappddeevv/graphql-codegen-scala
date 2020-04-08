@@ -98,6 +98,10 @@ object FooQuery {
 }
 ```
 
+I'll add a flag, someday soon :-), so that the types are generated
+from the property names but I need to make sure there will be no
+clashes first.
+
 ## Options
 
 * gqlImport: Scala package import and "gql" function to turn a string into a
