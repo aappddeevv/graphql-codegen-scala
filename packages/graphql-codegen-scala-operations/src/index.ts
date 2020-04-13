@@ -11,9 +11,7 @@ import {
   makeConfig,
   genEnums,
   genInputObjectTypes,
-  debug_type,
   log,
-  genInterfaceTypes,
 } from "@aappddeevv/graphql-codegen-scala-common"
 
 export const plugin: PluginFunction<RawConfig> = (
@@ -43,6 +41,7 @@ export const plugin: PluginFunction<RawConfig> = (
       ...config,
       externalFragments: allFragments,
     })
+    logme("Generating operations. Input Config: %O, Final Config: %O", config, final_config)
     /*
     Object.entries(schema.getTypeMap()).forEach(t => {
       logme("type", t[0]);

@@ -10,6 +10,7 @@ import {
   genObjectTypes,
   genInputObjectTypes,
   genInterfaceTypes,
+  log,
 } from "@aappddeevv/graphql-codegen-scala-common"
 
 export const plugin: PluginFunction<RawConfig> = (
@@ -17,6 +18,7 @@ export const plugin: PluginFunction<RawConfig> = (
   documents: Types.DocumentFile[],
   config: RawConfig
 ) => {
+  const logme = log.extend("plugin")
   const allAst = concatAST(documents.map(v => v.document))
 
   // Gather all fragments into one place since finding them on the
@@ -38,6 +40,8 @@ export const plugin: PluginFunction<RawConfig> = (
       ...config,
       externalFragments: allFragments,
     })
+
+    logme("Generating schema. Input Config: %O, Final Config: %O", config, final_config)
 
     const inputObjectTypes = genInputObjectTypes(final_config, { trait: { ignoreDefaultValuesInTrait: true } }).join(
       "\n"

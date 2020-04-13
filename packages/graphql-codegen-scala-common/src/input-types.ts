@@ -1,11 +1,11 @@
-import { isInputType, isInputObjectType, GraphQLInputObjectType, isObjectType, isCompositeType } from "graphql"
+import { isInputObjectType, GraphQLInputObjectType, isCompositeType } from "graphql"
 
 // handle input types
 import { Config } from "./config"
 import { log } from "./logger"
-import { PLVariableInfo, createPLVariable, GenOptions } from "./plvariable"
+import { createPLVariable, GenOptions } from "./plvariable"
 import { GenerateTraitOptions, generateScalaJSTrait } from "./trait"
-import { TraitRenderingInputs } from "./types"
+import { TraitRenderingInputs, undefNullWrapperOptions } from "./types"
 
 const logem = log.extend("input-types")
 
@@ -13,7 +13,7 @@ const logem = log.extend("input-types")
 export function findInputTypes(config: Config, options?: Partial<GenOptions>): Array<TraitRenderingInputs> {
   const inputTypes = Object.entries(config.schema.getTypeMap()).filter(p => isInputObjectType(p[1]))
   log(`Found ${inputTypes.length} input types to process.`)
-  return inputTypes.map(p => {
+  return inputTypes.flatMap(p => {
     const name = p[0]
     const t = p[1] as GraphQLInputObjectType
     const plvars = Object.entries(t.getFields()).map(f => {
@@ -25,15 +25,22 @@ export function findInputTypes(config: Config, options?: Partial<GenOptions>): A
         throw new Error(`Expecting non-composite type for ${name}.${fname} but found ${ftype}`)
       return createPLVariable(fname, ftype.type, {
         ...options,
+        ...(config.variant == "apollo"
+          ? {
+              wrapperOptions: undefNullWrapperOptions,
+            }
+          : {}),
       })
     })
     const description = t.description ? t.description : `Input type ${name}`
     return [
-      name,
-      plvars,
-      {
-        description,
-      },
+      [
+        name,
+        plvars,
+        {
+          description,
+        },
+      ],
     ]
   })
 }

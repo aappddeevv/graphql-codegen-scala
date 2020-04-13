@@ -11,6 +11,11 @@ type Query {
   getDie(numSides: Int): RandomDie
   companyList(filter: String): CompanyList
   test(items: [String]!): CompanyList
+  testScalars: TestScalarsResult
+}
+
+type TestScalarsResult { 
+  output: JSONObject
 }
 
 """
@@ -121,3 +126,10 @@ type PersonAndAddress implements AddressLike & PersonLike {
 
   notInEither: String
 }
+
+""" 
+Test scalar generation support.
+A type mapping must be added to the config to hande this
+correctly.
+"""
+scalar JSONObject

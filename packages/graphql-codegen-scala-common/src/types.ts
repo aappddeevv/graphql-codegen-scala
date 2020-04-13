@@ -90,17 +90,25 @@ export interface WrapperOptions {
 /** Optional => T|Null */
 export const nullWrapperOptions: WrapperOptions = {
   mkList: (arg: string) => `js.Array[${arg}]`,
+  mkListZero: (arg: string) => "js.Array()",
   mkOpt: (arg: string) => `${arg}|Null`,
   mkOptZero: (arg: string) => "null",
-  mkListZero: (arg: string) => "js.Array()",
 }
 
 /** Optional => js.Undef */
 export const undefWrapperOptions: WrapperOptions = {
   mkList: (arg: string) => `js.Array[${arg}]`,
+  mkListZero: (arg: string) => "js.Array()",
   mkOpt: (arg: string) => `js.UndefOr[${arg}]`,
   mkOptZero: (arg: string) => "js.undefined",
+}
+
+/** Optional => js.Undef[T|Null]. Crazy! */
+export const undefNullWrapperOptions: WrapperOptions = {
+  mkList: (arg: string) => `js.Array[${arg}]`,
   mkListZero: (arg: string) => "js.Array()",
+  mkOpt: (arg: string) => `js.UndefOr[${arg}|Null]`,
+  mkOptZero: (arg: string) => "js.undefined",
 }
 
 /** Default wrapper options. */

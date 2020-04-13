@@ -11,6 +11,9 @@ generates:
       - add: "// DO NOT EDIT - automatically generated, edits will be lost"
       - add: "package test"
     config:
+      scalars:
+        JSONObject: js.Object
       gqlImport: "apollo_boost._#gql"
       operationDataTraitSupers:
         - My.Base
+      addTypename: "always"

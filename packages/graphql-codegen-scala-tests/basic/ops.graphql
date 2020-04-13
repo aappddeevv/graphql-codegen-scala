@@ -80,3 +80,8 @@ query testArrayArgument($items: [String] = ["blah", "hah"]) {
      items { id name }
    }
 }
+
+
+query testScalaConfig {
+  testScalars { output }
+}

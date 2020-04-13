@@ -18,6 +18,8 @@ import { parseEnumValues } from "./enum-values"
  * there may be some required fields one day.
  */
 export interface RawConfig {
+  /** Output variant. For now this is always "apollo". */
+  variant?: string
   /** For declaring documents in scala objects. If missing,
    * parsed document members are not added but the raw strings are still be added.
    */
@@ -50,10 +52,18 @@ export interface RawConfig {
   operationVariablesTraitSupers?: Array<string>
   /** Type traits generated from the schema will extend these classes. DON'T USE. */
   typeTraitSupers?: Array<string>
+  /** Add non-optional __typename to all relevant client operation types. The string value "always"
+   * makes the variables non-optional which is good when your server always adds it to types
+   * and "optional" adds it with js.UndefOr. The default is "exclude".
+   */
+  addTypename?: AddTypename
 }
+
+export type AddTypename = "always" | "optional" | "exclude"
 
 /** Final processed configuration taking into account defaults. */
 export interface Config {
+  variant: string
   schema: GraphQLSchema
   gqlImport: string | null
   convertName: ConvertFn<ConvertOptions>
@@ -69,6 +79,7 @@ export interface Config {
   operationDataTraitSupers: Array<string>
   operationVariablesTraitSupers: Array<string>
   typeTraitSupers: Array<string>
+  addTypename: AddTypename
 }
 
 /** Given a list of LoadedFragment objects, return the raw FragmentDefinitionNode AST
@@ -86,20 +97,22 @@ export function makeConfig(schema: GraphQLSchema, raw: RawConfig): Config {
     scalars[key] = parsedScalarsMap[key].type
   })
   return {
+    variant: raw.variant ?? "apollo",
     schema,
-    gqlImport: raw.gqlImport || null,
+    gqlImport: raw.gqlImport ?? null,
     convertName: convertFactory(raw),
-    fragmentObjectName: raw.fragmentObjectName || "Fragment",
+    fragmentObjectName: raw.fragmentObjectName ?? "Fragment",
     scalars,
     skipTypeName: raw.skipTypename ?? false,
     enumValues: parseEnumValues(schema, raw.enumValues),
-    fragments: raw.externalFragments || [],
+    fragments: raw.externalFragments ?? [],
     isolateFragments: raw.isolateFragments ?? true,
     outputOperationNameWrangling: raw.outputOperationNameWrangling ?? true,
     separateInterfaces: raw.separateInterfaces ?? true,
     operationDataTraitSupers: raw.operationDataTraitSupers,
     operationVariablesTraitSupers: raw.operationVariablesTraitSupers,
     typeTraitSupers: raw.typeTraitSupers,
+    addTypename: raw.addTypename ?? "exclude",
   }
 }
 

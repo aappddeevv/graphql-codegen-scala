@@ -2,6 +2,7 @@ import { GraphQLType, isNonNullType, isListType, isObjectType, isScalarType, get
 import { log } from "./logger"
 import { mk_type_wrapper_thunk, WrapperOptions, defaultWrapperOptions } from "./types"
 import { NormalizedScalarsMap, ParsedEnumValuesMap } from "@graphql-codegen/visitor-plugin-common"
+import { AddTypename } from "./config"
 
 /** A programming language type has a name and possible a path
  * that when put together is a QN. The QN may be
@@ -147,4 +148,39 @@ export const defaultGenOptions: GenOptions = {
   immutable: true,
   wrapperOptions: defaultWrapperOptions,
   defaultValue: undefined,
+}
+
+/** __typename that always has a value. */
+export const typenameAlways: PLVariableInfo = {
+  name: "__typename",
+  type: new PLType("String"),
+  wrapper: (type: string) => type,
+  documentation: "Graphql __typename",
+  immutable: true,
+}
+
+/** __typename that is wrapped with js.UndefOr */
+export const typenameOptional: PLVariableInfo = {
+  ...typenameAlways,
+  defaultValue: "js.undefined",
+  wrapper: (type: string) => `js.UndefOr[${type}]`,
+}
+
+/** Given a AddTypename value, return a PLVaribales to add to a type.
+ * Result is wrapped in an array for easy splicing.
+ */
+export function computeAddTypename(addTypename: AddTypename) {
+  let theTypename: Array<PLVariableInfo> = []
+  switch (addTypename) {
+    case "always": {
+      return (theTypename = [typenameAlways])
+    }
+    case "optional": {
+      return (theTypename = [typenameOptional])
+    }
+    case "exclude": {
+      // empty array
+    }
+  }
+  return theTypename
 }

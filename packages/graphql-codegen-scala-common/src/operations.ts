@@ -4,11 +4,11 @@ import { pascalCase } from "pascal-case"
 import OperationVariablesToObject from "./OperationVariablesToObject"
 import { getRootType } from "./types"
 import { ResolveContext, selectionSetToObject, ResolvedSelectionSet, ResolvedField } from "./selections"
-import { Config, parseImport, fragmentDefinitions } from "./config"
+import { Config, parseImport, fragmentDefinitions, AddTypename } from "./config"
 import { log } from "./logger"
 import { generateScalaJSTrait, generateScalaObject, GenerateTraitOptions } from "./trait"
 import { makeGQLForScala } from "./gql"
-import { GenOptions, PLVariableInfo } from "./plvariable"
+import { GenOptions, typenameAlways, typenameOptional, PLVariableInfo, computeAddTypename } from "./plvariable"
 
 /** Generate generic scala.js graphql data and data structures.
  * Each operation becomes one scala object.
@@ -86,8 +86,11 @@ export class ScalaJSOperationsVisitor {
       enums: this.config.enumValues,
     } as GenOptions
 
+    // __typename
+    let theTypename = computeAddTypename(this.config.addTypename)
+
     // simple fields are easy
-    const simpleFields = resolved ? resolved.leaves.map(f => f.toPLVariable(genopts)) : []
+    const simpleFields = [...theTypename, ...(resolved ? resolved.leaves.map(f => f.toPLVariable(genopts)) : [])]
 
     // object fields require recursion
     const subObjects = resolved ? resolved.resolveComplex(ctx) : []
@@ -99,6 +102,7 @@ export class ScalaJSOperationsVisitor {
     const nested = subObjects
       .map(so =>
         renderRecursiveData(so[1], ctx, {
+          config: this.config,
           path: ["Data"],
           convertName: (traitName: string) => `${pascalCase(so[0].name)}_${traitName}`,
           plvarOptions: (f: ResolvedField) => ({
@@ -224,7 +228,7 @@ export function generateOperationName(node: OperationDefinitionNode): [boolean, 
 }
 
 export interface RecurseContext {
-  /** The domain name path. */
+  /** The domain name path, each level of hierarchy (if any) is an element. */
   path: Array<string>
   /** Convert the name (leaf of the domain name) to a new name and use it for trait declaration. */
   convertName?: (traitName: string) => string
@@ -232,6 +236,8 @@ export interface RecurseContext {
   traitOptions?: Partial<GenerateTraitOptions>
   /** Options for the fields in the trait being generated. */
   plvarOptions?: (f: ResolvedField) => Partial<GenOptions>
+  /** Overall configuration. */
+  config: Config
 }
 
 /** Render traits recursively, output hierarchical/dependent types.
@@ -250,12 +256,21 @@ export function renderRecursiveData(selects: ResolvedSelectionSet, ctx: ResolveC
     //objectsHaveParentType: newstate.path.join("."),
     path: newstate.path,
   } as GenOptions
-  const directs = selects.leaves.map(f =>
-    f.toPLVariable({
-      ...genopts,
-      ...(state.plvarOptions ? state.plvarOptions(f) : {}),
-    })
-  )
+
+  // easy fields
+  // __typename
+  let theTypename = computeAddTypename(state.config.addTypename)
+
+  const directs = [
+    ...theTypename,
+    ...selects.leaves.map(f =>
+      f.toPLVariable({
+        ...genopts,
+        ...(state.plvarOptions ? state.plvarOptions(f) : {}),
+      })
+    ),
+  ]
+
   logme(`Generating trait ${name}`)
 
   const subObjects = selects.resolveComplex(ctx)
