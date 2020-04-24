@@ -125,6 +125,7 @@ export function generateScalaJSTrait(
   logmeth(`Generate trait: ${name}`)
   logmeth("   options: %O", opts)
   const fqn = opts.fqn ?? name
+  //if (!variables.hasOwnProperty(Symbol.iterator)) throw new Error(`Variables list is not iterable: ${variables}`)
   const declarations = variables.map(info => {
     const comment = opts.makeComment && info.comment ? opts.makeComment(info.comment) + "\n" : ""
     const decl = info.immutable ?? true ? "val" : "var"

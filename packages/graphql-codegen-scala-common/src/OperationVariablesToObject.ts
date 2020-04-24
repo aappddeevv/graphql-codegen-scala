@@ -119,6 +119,7 @@ export class OperationVariablesToObject {
       wrapper,
       //defaultValue: isNonNullType ? undefined : undefWrapperOptions.mkOptZero(pltype.name),
       defaultValue: undefined,
+      nullable: !isNonNullType,
     }
   }
 

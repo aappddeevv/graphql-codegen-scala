@@ -1,7 +1,7 @@
 import { Config } from "./config"
 import { isObjectType, GraphQLObjectType, isNonNullType } from "graphql"
 import { GenerateTraitOptions, generateScalaJSTrait } from "./trait"
-import { PLVariableInfo, createPLVariable, defaultGenOptions, GenOptions } from "./plvariable"
+import { PLVariableInfo, createPLVariable, defaultGenOptions, GenOptions, toUndefOr } from "./plvariable"
 import { undefWrapperOptions, nullWrapperOptions, filterFieldsWithParents, interfaceNames } from "./types"
 import { log } from "./logger"
 
@@ -17,6 +17,8 @@ export function findObjectTypes(config: Config) {
   })
 }
 
+type RVAL = [string, Array<PLVariableInfo>, Partial<GenerateTraitOptions>]
+
 /** Generate object types. All types are at the same level versus hierarchically
  * structured as in the operation selections. It is configurable about whether
  * interfaces can be used versus repeating all of the fields in each object
@@ -30,7 +32,8 @@ export function genObjectTypes(
 ): Array<string> {
   const objectTypes = findObjectTypes(config)
   logme(`Found ${objectTypes.length} object types.`)
-  const x: Array<[string, Array<PLVariableInfo>, Partial<GenerateTraitOptions>]> = objectTypes.map(p => {
+  // @ts-ignore
+  const x: Array<RVAL> = objectTypes.flatMap(p => {
     const name = p[0]
     const objectType = p[1] as GraphQLObjectType
     const genopts = {
@@ -51,21 +54,36 @@ export function genObjectTypes(
       `Type ${name}: # total fields: ${allFields.length}, # direct: ${directFields.length}, # extra: ${extraFields.length}, # fields for trait: ${plvars.length}, # extras: ${extraFields.length}`
     )
 
+    // If separatate interface then we need to ensure that the companion object sees
+    // the inherited fields in its apply/unapply methods.
     const additionalOptions = config.separateInterfaces
       ? {
           companionExtraProperties: extraFields,
           companionIncludesAllProperites: true,
         }
       : {}
-
-    return [
+    const core = [
       name,
       plvars,
       {
         extends: config.separateInterfaces ? interfaceNames(objectType) : [],
+        ignoreDefaultValuesInTrait: true,
         ...additionalOptions,
       },
     ]
+    return config.includeSchemaGenerics
+      ? [
+          core,
+          [
+            `${name}${config.schemaGenericsExtension}`,
+            allFieldsConverted.map(v => toUndefOr(v, { immutable: false })),
+            {
+              includeCompanion: false,
+              ignoreDefaultValuesInTrait: false,
+            },
+          ],
+        ]
+      : [core]
   })
 
   return x.map(data => {

@@ -57,6 +57,21 @@ export interface RawConfig {
    * and "optional" adds it with js.UndefOr. The default is "exclude".
    */
   addTypename?: AddTypename
+  /** When outputing schema types, output a `*Generic` object for each object type found.
+   * The generic objects have all the properties in one trait and each property is
+   * wrapped in `js.UndefOr`. Ensure that you are not already forcing optional values
+   * into `js.UndefOr` otherwise it will be wrapped twice, which is not what you want.
+   * These traits are conservative cast targets from the types returned in operations
+   * and allow you to cast an operation return type to a "generic" type. You lose ergonomics
+   * in that you must handle potentially missing fields since the return type for an
+   * operation will usually not include all attributes. Default is true. These generic
+   * types are targetted towards UI work where you need to write components
+   * that take into account all possible fields, not just those that are returned
+   * from a specific query.
+   */
+  includeSchemaGenerics?: boolean
+  /** If includeSchemaGenerics is true, this the extension to use. Defaults to `Generic`. */
+  schemaGenericsExtension?: string
 }
 
 export type AddTypename = "always" | "optional" | "exclude"
@@ -80,6 +95,8 @@ export interface Config {
   operationVariablesTraitSupers: Array<string>
   typeTraitSupers: Array<string>
   addTypename: AddTypename
+  includeSchemaGenerics: boolean
+  schemaGenericsExtension: string
 }
 
 /** Given a list of LoadedFragment objects, return the raw FragmentDefinitionNode AST
@@ -113,6 +130,8 @@ export function makeConfig(schema: GraphQLSchema, raw: RawConfig): Config {
     operationVariablesTraitSupers: raw.operationVariablesTraitSupers,
     typeTraitSupers: raw.typeTraitSupers,
     addTypename: raw.addTypename ?? "exclude",
+    includeSchemaGenerics: raw.includeSchemaGenerics ?? true,
+    schemaGenericsExtension: raw.schemaGenericsExtension ?? "Generic",
   }
 }
 

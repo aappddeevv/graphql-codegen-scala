@@ -59,9 +59,8 @@ export const plugin: PluginFunction<RawConfig> = (
       : ""
 
     const objectTypes = genObjectTypes(final_config, {
-      trait: {
-        ignoreDefaultValuesInTrait: true,
-      },
+      trait: {},
+      plvar: {},
     }).join("\n")
 
     return {

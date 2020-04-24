@@ -115,7 +115,7 @@ export const undefNullWrapperOptions: WrapperOptions = {
 export const defaultWrapperOptions = nullWrapperOptions
 
 /** Build a rendering thunk for the type. Takes
- * into account null and list types only i.e. wrapping types.
+ * into account null and list types only i.e. graphql wrapping types.
  */
 export function mk_type_wrapper_thunk(t: GraphQLType, options?: Partial<WrapperOptions>): (arg: string) => string {
   if (!t) throw Error("Type was null in type wrapper generation")

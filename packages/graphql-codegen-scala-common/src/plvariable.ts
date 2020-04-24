@@ -46,14 +46,32 @@ export interface PLVariableInfo {
    * modifiers (which is what we should do), this can add layers of confusion to a type
    * around nullness and optionality at the code generation point. */
   readonly wrapper: (type: string) => string
+  /** Outside wrapper on type implies optional which for graphql means could be null.
+   * This is is = `!isNonNullType(type)` for the input `type` parameter and should
+   * already be baked into the wrapper.
+   */
+  readonly nullable: boolean
   /** Default value, raw string. scala may need converters here. */
   readonly defaultValue?: string
   /** Documentation for this variable. */
   readonly documentation?: string
   /** Comment. Documentation is for documentation markup, but this is a comment near the declaration. */
   readonly comment?: string
-  /** Whether this variable is mutable or not i.e. val vs var. Default is immutable. Default is true, */
+  /** Whether this variable is mutable or not i.e. val vs var. Default is immutable (=true), */
   readonly immutable?: boolean
+}
+
+/** Take a PLVariableInfo and wrap it with `js.UndefOr` and set the defaultValue to `js.undefined`.
+ * If the wrapper types had already mapped Optional to `js.UndefOr` you will be stacked up.
+ * Creates a copy.
+ */
+export function toUndefOr(v: PLVariableInfo, overrides: Partial<PLVariableInfo> = {}) {
+  return {
+    ...v,
+    defaultValue: "_root_.scala.scalajs.js.undefined",
+    wrapper: (type: string) => `_root_.scala.scalajs.js.UndefOr[${v.wrapper(type)}]`,
+    ...overrides,
+  }
 }
 
 /** Create a PL variable from a name, type and options. Scalars and enums are searched on the bottom type
@@ -111,6 +129,7 @@ export function createPLVariable(name: string, type: GraphQLType, options?: Part
     comment: opts?.comment,
     documentation: opts?.documentation,
     immutable: opts.immutable,
+    nullable: !isNonNullType(type),
   }
 }
 
@@ -157,6 +176,7 @@ export const typenameAlways: PLVariableInfo = {
   wrapper: (type: string) => type,
   documentation: "Graphql __typename",
   immutable: true,
+  nullable: false,
 }
 
 /** __typename that is wrapped with js.UndefOr */
