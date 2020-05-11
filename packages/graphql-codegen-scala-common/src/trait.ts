@@ -16,8 +16,11 @@ export enum PlatformTarget {
  */
 export interface GenerateTraitOptionsCommon {
   nested: string
+  /** Include the companion object. The companion includes extension methods. */
   includeCompanion: boolean
+  /** Include a copy method in the extension methods. */
   includeCopy: boolean
+  /** Include a convenient object creator in the companion object. */
   includeApply: boolean
   /** Include an unapply method. If there are more than 22 vars, it is skipped
    * due to scala tuple limitations.
@@ -52,11 +55,16 @@ export interface GenerateTraitOptionsCommon {
    */
   companionIncludesAllProperties?: boolean
   /** If companionIncludesAllProperties is true, these properties are also included
-   * in companion methods.
+   * in companion methods apply, unapply and copy.
    */
   companionExtraProperties?: Array<PLVariableInfo>
   /** Trait modifiers added to any implicitly added by the generator, e.g., `@coolannotation`. */
   mods: Array<string>
+  /** Add the rendering function to the extensions. The rendering function should take a single
+   * name which is the name of the original value that is being extended. Return null if there
+   * is no content to include.
+   */
+  extensionMethods?: (name: string) => string | null
 }
 
 /** Trait generation options. */
@@ -121,6 +129,7 @@ export function generateScalaJSTrait(
   options?: Partial<GenerateTraitOptions>
 ) {
   const logmeth = logme.extend("generateTrait")
+  // add default options to the options passed in.
   const opts = { ...defaultOptions, ...options } as GenerateTraitOptions
   logmeth(`Generate trait: ${name}`)
   logmeth("   options: %O", opts)
@@ -158,8 +167,10 @@ export function generateScalaJSTrait(
   logmeth(`Companion object ${name} will deploy ${v.length} properties. # extra properties was ${extras.length}.`)
   logmeth(`   Include extras? ${include_extras}`)
 
-  const companion_copy = () => `implicit class Copy(private val orig: ${fqn}) extends AnyVal {
-    def copy(${v.map(d => `${d.name}: ${d.wrapper(d.type.qn)}=orig.${d.name}`).join(", ")}) =
+  const ext_var_name = "orig"
+  const companion_extensions = () => `implicit class Rich${name}(private val ${ext_var_name}: ${fqn}) extends AnyVal {
+    ${opts.extensionMethods ? opts.extensionMethods(ext_var_name) : ""}
+    def copy(${v.map(d => `${d.name}: ${d.wrapper(d.type.qn)}=${ext_var_name}.${d.name}`).join(", ")}) =
       _root_.scala.scalajs.js.Dynamic.literal(${v
         .map(d => `"${d.name}" -> ${opts.dynamicValueConversion(d.name)}`)
         .join(", ")}).asInstanceOf[${fqn}]
@@ -187,7 +198,7 @@ export function generateScalaJSTrait(
         `object ${name} {`,
         opts.includeApply ? companion_apply() : "",
         opts.includeUnapply ? companion_unapply() : "",
-        opts.includeCopy ? companion_copy() : "",
+        opts.includeCopy ? companion_extensions() : "",
         ...(opts.nested ? [options.nested] : []),
         `} // end ${name} companion`,
       ]

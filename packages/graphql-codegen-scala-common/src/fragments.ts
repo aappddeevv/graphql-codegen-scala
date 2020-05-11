@@ -54,9 +54,7 @@ export function extractFragments(document: FragmentDefinitionNode | OperationDef
   if (!document) {
     return []
   }
-
   const names = []
-
   visit(document, {
     enter: {
       FragmentSpread: (node: FragmentSpreadNode) => {
@@ -64,7 +62,6 @@ export function extractFragments(document: FragmentDefinitionNode | OperationDef
       },
     },
   })
-
   return names
 }
 
@@ -82,7 +79,7 @@ export function genScalaFragmentBlock(
 ): string {
   const fragment_docs = getFragments(allFragments)
   if (fragment_docs.length === 0) return ""
-  const fragments = fragment_docs.map(doc => `val ${makeVariableName(doc)} = """"${makeGQL(doc)}"""`)
+  const fragments = fragment_docs.map(doc => `val ${makeVariableName(doc)} = """${makeGQL(doc)}"""`)
   const traits = makeTraits ? fragment_docs.map(f => makeTraits(f)).join("\n") : ""
   return generateScalaObject(objectName, fragments.join("\n"))
 }

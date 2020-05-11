@@ -207,7 +207,9 @@ export class ResolvedSelectionSet {
     return [this.leaves, this.complex]
   }
 
-  /** This should resolve all objects and their resolved selection sets. */
+  /** Resolve all object types and their selection sets. This resolves "sub-objects"
+   * since scalars are the leaves.
+   */
   resolveComplex = (context: ResolveContext): Array<[ResolvedField, ResolvedSelectionSet]> => {
     log("Resolving complex fields", this.fields.map(f => `${f.name} (${f.field.type})`).join(", "))
     return this.complex.map(f => [f, resolveFieldSelectionSet(context, f)])

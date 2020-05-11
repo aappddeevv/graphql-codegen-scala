@@ -70,8 +70,29 @@ export interface RawConfig {
    * from a specific query.
    */
   includeSchemaGenerics?: boolean
-  /** If includeSchemaGenerics is true, this the extension to use. Defaults to `Generic`. */
+  /** If includeSchemaGenerics is true, this the extension name on the type to use. Defaults to `Generic`. */
   schemaGenericsExtension?: string
+  /** For operations only, add an extension method that casts to the generic schema
+   * trait for each response object. If you need to write a function that acts against
+   * any version of a schema object regardless of the response shape of the operation, use the
+   * extension method generated from this option to obtain a "generic" version of the response type.
+   * Compilation of the output will fail if you do not use `includeSchemaGenerics: true` in the
+   * schema generation task. The default extension method name is `toSchemaType`.
+   *
+   * The result of the extension method reshapes the entire type subtree where you call
+   * the extension method since the schema object
+   * will contain a hierarchy separate from the response shape type hierarchy.
+   * If you generated schema generics (see `includeSchemaGenerics` and `schemaGenericsExtension`)
+   * then you need to ensure you use the same `schemaGenericsExtension` in your
+   * operation codegen config. Since you may generate your schema into a different "package"
+   * the configuration value can take the form of `package` or `package#conversionFunctionName` or `#conversionFunctionName`
+   * so that it references the generated generic shape in the correct package. If you
+   * just use the value true, then all of the defaults are used and the same package
+   * used for generating the operation's scala package are used to reference the generic type.
+   * Default is false. A conversion function is generated at each nested level of the type
+   * hierarchy so you can genericize at any level of the response shape.
+   */
+  addGenericConversionExtensionMethod?: string | boolean
 }
 
 export type AddTypename = "always" | "optional" | "exclude"
@@ -97,6 +118,7 @@ export interface Config {
   addTypename: AddTypename
   includeSchemaGenerics: boolean
   schemaGenericsExtension: string
+  addGenericConversionExtensionMethod: string | boolean
 }
 
 /** Given a list of LoadedFragment objects, return the raw FragmentDefinitionNode AST
@@ -132,6 +154,7 @@ export function makeConfig(schema: GraphQLSchema, raw: RawConfig): Config {
     addTypename: raw.addTypename ?? "exclude",
     includeSchemaGenerics: raw.includeSchemaGenerics ?? true,
     schemaGenericsExtension: raw.schemaGenericsExtension ?? "Generic",
+    addGenericConversionExtensionMethod: raw.addGenericConversionExtensionMethod ?? false,
   }
 }
 

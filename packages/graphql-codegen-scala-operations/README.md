@@ -118,6 +118,10 @@ Code generation does not handle:
 - enum extensions (but it handles enums)
 - default values
 - other things buried deep in the graphql spec...
+- fields listed both in a fragment and explicitly are added twice leading to a compilation error
+- `$` in graphql will be replaced by `$$` to support scala string interpolation. It does not
+use a smart replacement strategy so its possible that it will improperly replace `$` and cause
+compile errors.
 
 # sbt
 

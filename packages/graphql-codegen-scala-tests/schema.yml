@@ -11,3 +11,4 @@ generates:
       - add: "// DO NOT EDIT - automatically generated, edits will be lost"
       - add: "package test"
     config:
+      includeSchemaGenerics: true

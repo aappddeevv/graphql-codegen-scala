@@ -11,6 +11,8 @@ generates:
       - add: "// DO NOT EDIT - automatically generated, edits will be lost"
       - add: "package test"
     config:
+      # these won't match schema but its a test!
+      addGenericConversionExtensionMethod: mypackage.blah#toSchema
       scalars:
         JSONObject: js.Object
       gqlImport: "apollo_boost._#gql"

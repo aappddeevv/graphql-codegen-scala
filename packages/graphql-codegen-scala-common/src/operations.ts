@@ -4,11 +4,14 @@ import { pascalCase } from "pascal-case"
 import OperationVariablesToObject from "./OperationVariablesToObject"
 import { getRootType } from "./types"
 import { ResolveContext, selectionSetToObject, ResolvedSelectionSet, ResolvedField } from "./selections"
-import { Config, parseImport, fragmentDefinitions, AddTypename } from "./config"
+import { Config, parseImport, fragmentDefinitions } from "./config"
 import { log } from "./logger"
 import { generateScalaJSTrait, generateScalaObject, GenerateTraitOptions } from "./trait"
 import { makeGQLForScala } from "./gql"
-import { GenOptions, typenameAlways, typenameOptional, PLVariableInfo, computeAddTypename } from "./plvariable"
+import { GenOptions, computeAddTypename } from "./plvariable"
+import { createSchemaGenericName } from "./object-types"
+
+const logme = log.extend("operation")
 
 /** Generate generic scala.js graphql data and data structures.
  * Each operation becomes one scala object.
@@ -46,10 +49,13 @@ export class ScalaJSOperationsVisitor {
     return this._config
   }
 
-  /** Output raw document. Must have gqlImport propName defined to produce gql function call. */
+  /** Output raw document. Must have gqlImport propName defined to produce gql function call.
+   * We always add scala string interpolation but that should really be based on whether
+   * there are fragments in use (slight optimization).
+   */
   protected _buildDocumentNodes = (node): string => {
-    const raw = makeGQLForScala(node, this.config.fragmentObjectName, this.config.convertName)
-    const rawOp = `val operationString = """${raw}"""`
+    const raw = makeGQLForScala(node, this.config.fragmentObjectName, this.config.convertName, true)
+    const rawOp = `val operationString = s"""${raw}"""`
     let docOp = ""
     if (this.config.gqlImport) {
       const parsed = parseImport(this.config.gqlImport)
@@ -216,8 +222,8 @@ let _unnamedCounter: number = 1
 
 /** If operation is anonymous, generate a synthensized operation name otherwise
  * return the raw operation name.
- * Return tuple [name was synthensized, name]. Side effect of incrementing
- * hiddent state counter.
+ * Return tuple [name was synthensized, name]. Side effect is incrementing
+ * hidden state counter.
  */
 export function generateOperationName(node: OperationDefinitionNode): [boolean, string] {
   const name = node.name && node.name.value
@@ -291,10 +297,15 @@ export function renderRecursiveData(selects: ResolvedSelectionSet, ctx: ResolveC
     )
     .join("\n")
 
+  const extensionMethods = !!state.config.addGenericConversionExtensionMethod
+    ? generateGenericExtensionMethod(state.config, base_name)
+    : undefined
+
   return generateScalaJSTrait(name, [...directs, ...subObjectFields], {
     native: true,
     nested,
     fqn,
+    extensionMethods,
     //extends: selects.supers
     ...state.traitOptions,
   })
@@ -311,4 +322,33 @@ export function findOperations(doc: DocumentNode): Array<OperationDefinitionNode
     },
   })
   return nodes
+}
+
+/** Generate a cast to the schema object type. The schema object type is generic
+ * in that it has every field. An operation may only request a subset. The cast
+ * casts from the current object to the generic schema object with the assumption
+ * that the schema generic object has `js.UndefOr` wrapped around its fields since
+ * a shape will only have a subset.
+ */
+export function generateGenericExtensionMethod(config: Config, typeName: string) {
+  let pkg = null
+  let extMethodName = "toSchemaType"
+
+  // split on # and fixup the names as needed
+  if (typeof config.addGenericConversionExtensionMethod === "string") {
+    const splits = config.addGenericConversionExtensionMethod.split("#")
+    if (splits.length === 1) pkg = splits[0].trim()
+    else if (splits.length === 2) {
+      if (splits[0].length > 0) pkg = splits[0].trim()
+      if (splits[1].length > 0) extMethodName = splits[1].trim()
+    } else {
+      // else do nothing, bad input ?? notify user?
+      logme(
+        `Extension method string ${config.addGenericConversionExtensionMethod} did not return any results. Using defaults.`
+      )
+    }
+    if (pkg.slice(-1) !== ".") pkg = pkg + "."
+  }
+  const tname = pkg ? `${pkg}${typeName}` : typeName
+  return (name: string) => `def ${extMethodName} = ${name}.asInstanceOf[${createSchemaGenericName(config, tname)}]`
 }

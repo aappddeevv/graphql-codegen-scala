@@ -75,7 +75,7 @@ export function genObjectTypes(
       ? [
           core,
           [
-            `${name}${config.schemaGenericsExtension}`,
+            `${createSchemaGenericName(config, name)}`,
             allFieldsConverted.map(v => toUndefOr(v, { immutable: false })),
             {
               includeCompanion: false,
@@ -92,4 +92,9 @@ export function genObjectTypes(
     const toptions = data[2]
     return generateScalaJSTrait(name, plvars, { ...toptions, ...options?.trait })
   })
+}
+
+/** Create a the generic type name. */
+export function createSchemaGenericName(config: Config, typeName: string) {
+  return `${typeName}${config.schemaGenericsExtension}`
 }
