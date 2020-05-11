@@ -1,6 +1,6 @@
 {
   "name": "@aappddeevv/graphql-codegen-scala-tests",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Test folder. Not meant for publishing.",
   "main": "index.js",
   "private": true,
