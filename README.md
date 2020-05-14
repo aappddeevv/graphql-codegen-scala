@@ -32,7 +32,7 @@ use the npm packages listed above using the registry option listed below.
 
 The npm packages are currently published to bintray. To install use:
 
-- `npm install <PACKAGE_NAME> --registry https://api.bintray.com/npm/aappddeevv/npm`
+- `npm install <PACKAGE_NAME> --registry https://dl.bintray.com/npm/aappddeevv/npm`
 
 So:
 
