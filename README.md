@@ -21,12 +21,12 @@ no additional libraries to import. The generated code uses `js.Array`, `js.Undef
 to translate graphql language constructs to scala.js code. You will probably want to use
 implicit conversions to help manage the data wrangling for your code.
 
-This is a new project and the entire graphql spec is not supported. The current focus is
+This is a new project and the graphql spec is not fully supported. The current focus is
 on generating operations for the client with the target being the apollo graphql client
 although there is nothing specific to apollo in the generated code.
 
-There is a package called `@aappddeevv/graphql-codegen-scala` on npm. Ignore that and
-use the npm packages above.
+There is a package called `@aappddeevv/graphql-codegen-scala` on npm. Ignore it and
+use the npm packages listed above using the registry option listed below.
 
 # Install
 
@@ -37,8 +37,8 @@ The npm packages are currently published to bintray. To install use:
 So:
 
 ```sh
-npm install @aappddeevvv/graphql-code-scala-operations --registry https://api.bintray.com/npm/aappddeevv/npm
-npm install @aappddeevvv/graphql-code-scala-schema --registry https://api.bintray.com/npm/aappddeevv/npm
+npm install @aappddeevvv/graphql-codegen-scala-operations --registry https://dl.bintray.com/npm/aappddeevv/npm --registry https://registry.npmjs.org
+npm install @aappddeevvv/graphql-codegen-scala-schema --registry https://dl.bintray.com/npm/aappddeevv/npm --registry https://registry.npmjs.org
 ```
 
 # Options

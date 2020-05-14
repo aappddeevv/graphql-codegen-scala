@@ -35,7 +35,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@aappddeevv/graphql-codegen-scala-common": "^1.0.0",
+    "@aappddeevv/graphql-codegen-scala-common": "latest",
     "@graphql-codegen/plugin-helpers": "1.12.2",
     "@graphql-codegen/visitor-plugin-common": "^1.12.2",
     "debug": "^4.1.1",
