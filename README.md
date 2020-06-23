@@ -37,8 +37,9 @@ The npm packages are currently published to bintray. To install use:
 So:
 
 ```sh
-npm install @aappddeevvv/graphql-codegen-scala-operations --registry https://dl.bintray.com/npm/aappddeevv/npm --registry https://registry.npmjs.org
-npm install @aappddeevvv/graphql-codegen-scala-schema --registry https://dl.bintray.com/npm/aappddeevv/npm --registry https://registry.npmjs.org
+npm install -D @graphql-codegen/visitor-plugin-common
+npm install -D @aappddeevvv/graphql-codegen-scala-operations --registry https://dl.bintray.com/npm/aappddeevv/npm --registry https://registry.npmjs.org
+npm install -D @aappddeevvv/graphql-codegen-scala-schema --registry https://dl.bintray.com/npm/aappddeevv/npm --registry https://registry.npmjs.org
 ```
 
 # Options

@@ -12,6 +12,7 @@ type Query {
   companyList(filter: String): CompanyList
   test(items: [String]!): CompanyList
   testScalars: TestScalarsResult
+  takeAFloat(value: Float!): Float
 }
 
 type TestScalarsResult { 

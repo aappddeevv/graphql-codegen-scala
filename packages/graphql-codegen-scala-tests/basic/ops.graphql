@@ -1,3 +1,7 @@
+query floatTest { 
+ takeAFloat(value:10.00) 
+}
+
 query helloworld {
   helloworld
 }

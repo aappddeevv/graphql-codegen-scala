@@ -5,5 +5,5 @@ export const DEFAULT_SCALARS: NormalizedScalarsMap = {
   String: "String",
   Boolean: "Boolean",
   Int: "Int",
-  Float: "Float"
+  Float: "Double"
 };
